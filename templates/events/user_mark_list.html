@@ -1,0 +1,110 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Bảng điểm người dùng | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Bảng điểm{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.premium-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    border: none;
+    overflow: hidden;
+}
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.coin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+    color: #d97706;
+    font-size: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-card">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);border:none;padding:22px 28px;">
+        <div class="d-flex align-items-center">
+            <div style="width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:14px;">
+                <i class="fas fa-star" style="color:#fbbf24;font-size:18px;"></i>
+            </div>
+            <div>
+                <h5 style="color:#fff;font-weight:800;margin:0;font-size:17px;">Bảng điểm người dùng</h5>
+                <div style="font-size:12px;color:rgba(255,255,255,0.75);">{{ usermark|length }} bản ghi</div>
+            </div>
+        </div>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'create-user-mark' %}" class="btn btn-warning btn-sm font-weight-bold text-white" style="border-radius:10px;">
+            <i class="fas fa-plus mr-1"></i>Gán điểm
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:#f5f3ff;font-size:12px;color:#64748b;text-transform:uppercase;">
+                    <tr>
+                        <th style="padding-left:22px;">STT</th>
+                        <th>Người dùng</th>
+                        <th>Loại nhận điểm</th>
+                        <th>Số xu / điểm</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in usermark %}
+                    <tr>
+                        <td style="padding-left:22px;font-weight:700;color:#94a3b8;">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm mr-2">{{ item.user|slice:":1"|upper }}</div>
+                                <span style="font-weight:600;color:#1e293b;">{{ item.user }}</span>
+                            </div>
+                        </td>
+                        <td style="color:#374151;font-size:13px;">{{ item.gain_type }}</td>
+                        <td>
+                            <span class="coin-badge">
+                                <i class="fas fa-coins"></i>{{ item.gain_coin }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.status == 'active' or item.status == 'Hoạt động' %}
+                            <span style="background:#ede9fe;color:#4f46e5;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">
+                                <i class="fas fa-check-circle mr-1" style="font-size:10px;"></i>{{ item.status }}
+                            </span>
+                            {% else %}
+                            <span style="background:#f1f5f9;color:#64748b;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">
+                                {{ item.status }}
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:60px;color:#94a3b8;">
+                            <i class="fas fa-star" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.2;color:#4f46e5;"></i>
+                            <div style="font-size:15px;font-weight:600;">Chưa có dữ liệu điểm nào</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}

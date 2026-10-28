@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Chỉnh sửa danh mục sự kiện | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Chỉnh sửa danh mục{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.form-control, select.form-control {
+    border-radius: 10px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    padding: 10px 14px !important;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.form-control:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.1) !important;
+}
+label { font-weight: 600; color: #374151; font-size: 13px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div style="background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.08);border:none;overflow:hidden;">
+            <div style="background:linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);padding:28px 32px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+                <div class="d-flex align-items-center">
+                    <div style="width:50px;height:50px;background:rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-right:16px;">
+                        <i class="fas fa-folder-open" style="color:#fff;font-size:22px;"></i>
+                    </div>
+                    <div>
+                        <h5 style="color:#fff;font-weight:800;margin:0;font-size:18px;">Chỉnh sửa danh mục sự kiện</h5>
+                        <p style="color:rgba(255,255,255,0.85);font-size:13px;margin:4px 0 0;">Cập nhật thông tin danh mục</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'event-category-list' %}" class="btn btn-outline-secondary" style="border-radius:10px;padding:10px 24px;">
+                            <i class="fas fa-arrow-left mr-2"></i>Danh sách danh mục
+                        </a>
+                        <button type="submit" class="btn font-weight-bold text-white" style="background:linear-gradient(135deg, #7c3aed, #8b5cf6);border-radius:10px;padding:10px 28px;border:none;">
+                            <i class="fas fa-save mr-2"></i>Cập nhật danh mục
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

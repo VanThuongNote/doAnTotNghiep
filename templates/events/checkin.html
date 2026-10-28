@@ -1,0 +1,301 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Điểm danh Người tham dự | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Điểm danh sự kiện{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.checkin-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: none;
+    margin-bottom: 24px;
+}
+.stat-pill-box {
+    border-radius: 14px;
+    padding: 16px 20px;
+    color: white;
+}
+.gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.gradient-green { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+.gradient-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.gradient-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+
+.scanner-box {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    color: #fff;
+    padding: 24px;
+}
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.badge-waiting { background: #fef3c7; color: #92400e; }
+.badge-attending { background: #d1fae5; color: #065f46; }
+.badge-absent { background: #fee2e2; color: #991b1b; }
+</style>
+<!-- Include HTML5 QR Code Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+
+    <!-- Header & Event Selector -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h4 style="font-weight:800; color:#1e293b; margin:0;">
+                <i class="fas fa-qrcode text-primary mr-2"></i>Điểm Danh Người Tham Dự
+            </h4>
+            <div style="font-size:13px; color:#64748b;">Quét mã QR trên vé hoặc nhập mã vé để xác nhận điểm danh</div>
+        </div>
+        
+        <!-- Filter form -->
+        <div class="mt-3 mt-md-0">
+            <form method="GET" class="form-inline">
+                <label class="mr-2 font-weight-bold style-13">Chọn sự kiện:</label>
+                <select name="event_id" class="form-control form-control-sm" onchange="this.form.submit()" style="border-radius:8px; min-width:220px;">
+                    <option value="">-- Tất cả sự kiện --</option>
+                    {% for ev in events %}
+                    <option value="{{ ev.id }}" {% if selected_event_id == ev.id %}selected{% endif %}>{{ ev.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-6 mb-3 mb-lg-0">
+            <div class="stat-pill-box gradient-blue">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.85;">Tổng số đăng ký</div>
+                <div style="font-size:32px; font-weight:900; margin-top:2px;">{{ total_registered }}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6 mb-3 mb-lg-0">
+            <div class="stat-pill-box gradient-green">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.85;">Đã điểm danh</div>
+                <div style="font-size:32px; font-weight:900; margin-top:2px;">{{ total_attended }}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="stat-pill-box gradient-orange">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.85;">Chờ điểm danh</div>
+                <div style="font-size:32px; font-weight:900; margin-top:2px;">{{ total_waiting }}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="stat-pill-box gradient-purple">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.85;">Tỷ lệ tham dự</div>
+                <div style="font-size:32px; font-weight:900; margin-top:2px;">{{ attendance_rate }}%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner & Input Area -->
+    <div class="row">
+        <!-- Manual Input / Camera Scanner -->
+        <div class="col-lg-5 mb-4">
+            <div class="scanner-box h-100">
+                <h5 style="font-weight:800; color:#fff; margin-bottom:16px;">
+                    <i class="fas fa-camera mr-2" style="color:#a5b4fc;"></i>Quét mã QR / Nhập mã vé
+                </h5>
+                
+                <!-- Manual Code Submit Form -->
+                <form method="POST" action="{% url 'event-checkin' %}" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="checkin">
+                    <div class="input-group">
+                        <input type="text" name="ticket_code" class="form-control" placeholder="Nhập mã vé (VD: EVT0001-MEM0005)" value="{{ search_ticket }}" style="border-radius:10px 0 0 10px; text-transform:uppercase; font-weight:700;" required autocomplete="off">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary font-weight-bold" style="border-radius:0 10px 10px 0;">
+                                <i class="fas fa-check-circle mr-1"></i>Điểm danh
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Camera QR Code Scanner Toggle -->
+                <div class="text-center py-2">
+                    <button id="toggleScannerBtn" onclick="toggleCameraScanner()" class="btn btn-outline-light btn-block btn-sm" style="border-radius:10px;">
+                        <i class="fas fa-qrcode mr-1"></i>Mở Camera quét mã QR
+                    </button>
+                </div>
+
+                <!-- Camera Container -->
+                <div id="qr-reader" style="width: 100%; border-radius:12px; overflow:hidden; display:none;" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Scanned Ticket Result Card (If scanned via URL) -->
+        <div class="col-lg-7 mb-4">
+            {% if scanned_member %}
+            <div class="card border-0 shadow-sm mb-4" style="border-radius:16px; background:#ecfdf5; border:2px solid #10b981 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge badge-success px-3 py-1" style="font-size:12px;">MÃ VÉ HỢP LỆ</span>
+                            <h4 style="font-weight:900; color:#065f46; margin:8px 0 2px;">#{{ scanned_member.ticket_code }}</h4>
+                            <div style="font-size:18px; font-weight:800; color:#1e293b;">
+                                {{ scanned_member.user.get_full_name|default:scanned_member.user.username }}
+                            </div>
+                            <div style="font-size:13px; color:#475569;">
+                                Sự kiện: <strong>{{ scanned_member.event.name }}</strong>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <form method="POST" action="{% url 'event-checkin' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="checkin">
+                                <input type="hidden" name="member_id" value="{{ scanned_member.id }}">
+                                {% if scanned_member.attend_status == 'attending' or scanned_member.attend_status == 'completed' %}
+                                <button type="button" class="btn btn-success font-weight-bold" disabled style="border-radius:10px;">
+                                    <i class="fas fa-check-double mr-1"></i>Đã điểm danh
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-success btn-lg font-weight-bold" style="border-radius:12px;">
+                                    <i class="fas fa-check-circle mr-1"></i>XÁC NHẬN ĐIỂM DANH
+                                </button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Registered Members Table -->
+            <div class="checkin-card">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center" style="border-radius:16px 16px 0 0;">
+                    <h5 style="font-weight:800; color:#1e293b; margin:0; font-size:16px;">
+                        Danh sách người tham gia {% if selected_event_id %}(Sự kiện #{{ selected_event_id }}){% endif %}
+                    </h5>
+                    <span class="badge badge-light" style="font-size:12px;">{{ event_members|length }} người</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead style="background:#f8fafc; font-size:12px; color:#64748b;">
+                                <tr>
+                                    <th style="padding-left:20px;">STT</th>
+                                    <th>Mã vé</th>
+                                    <th>Người tham gia</th>
+                                    <th>Sự kiện</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center" style="width:140px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in event_members %}
+                                <tr>
+                                    <td style="padding-left:20px; font-weight:700; color:#94a3b8;">{{ forloop.counter }}</td>
+                                    <td>
+                                        <a href="{% url 'event-ticket' m.id %}" target="_blank" style="font-family:monospace; font-weight:800; color:#4f46e5;">
+                                            #{{ m.ticket_code }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:700; color:#1e293b;">{{ m.user.get_full_name|default:m.user.username }}</div>
+                                        <div style="font-size:11px; color:#94a3b8;">@{{ m.user.username }}</div>
+                                    </td>
+                                    <td style="font-size:13px; color:#475569;">{{ m.event.name|truncatechars:25 }}</td>
+                                    <td>
+                                        {% if m.attend_status == 'attending' or m.attend_status == 'completed' %}
+                                        <span class="status-badge badge-attending"><i class="fas fa-check-circle mr-1"></i>Đã điểm danh</span>
+                                        {% elif m.attend_status == 'absent' %}
+                                        <span class="status-badge badge-absent"><i class="fas fa-times-circle mr-1"></i>Vắng mặt</span>
+                                        {% else %}
+                                        <span class="status-badge badge-waiting"><i class="fas fa-clock mr-1"></i>Chờ điểm danh</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if m.attend_status == 'attending' or m.attend_status == 'completed' %}
+                                        <form method="POST" action="{% url 'event-checkin' %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="cancel_checkin">
+                                            <input type="hidden" name="member_id" value="{{ m.id }}">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Hủy điểm danh" style="border-radius:8px;">
+                                                <i class="fas fa-undo"></i> Hủy
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST" action="{% url 'event-checkin' %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="checkin">
+                                            <input type="hidden" name="member_id" value="{{ m.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm font-weight-bold" title="Điểm danh ngay" style="border-radius:8px;">
+                                                <i class="fas fa-check"></i> Điểm danh
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="fas fa-users-slash mb-2" style="font-size:36px; opacity:0.3;"></i>
+                                        <div>Chưa có người đăng ký tham gia</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let html5QrcodeScanner = null;
+let isScannerOpen = false;
+
+function toggleCameraScanner() {
+    const readerDiv = document.getElementById("qr-reader");
+    const btn = document.getElementById("toggleScannerBtn");
+    
+    if (!isScannerOpen) {
+        readerDiv.style.display = "block";
+        btn.innerHTML = '<i class="fas fa-times mr-1"></i>Tắt Camera quét';
+        btn.className = "btn btn-outline-danger btn-block btn-sm";
+        isScannerOpen = true;
+
+        html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} });
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    } else {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().catch(error => console.error("Scanner clear error", error));
+        }
+        readerDiv.style.display = "none";
+        btn.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Mở Camera quét mã QR';
+        btn.className = "btn btn-outline-light btn-block btn-sm";
+        isScannerOpen = false;
+    }
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    // If text contains a ticket URL or raw ticket code
+    let ticketCode = decodedText;
+    if (decodedText.includes("ticket=")) {
+        const urlParams = new URLSearchParams(decodedText.split("?")[1]);
+        ticketCode = urlParams.get("ticket") || decodedText;
+    }
+    
+    // Auto fill and submit form
+    const input = document.querySelector('input[name="ticket_code"]');
+    if (input) {
+        input.value = ticketCode;
+        input.form.submit();
+    }
+}
+
+function onScanFailure(error) {
+    // Ignore frame scan failures
+}
+</script>
+{% endblock %}

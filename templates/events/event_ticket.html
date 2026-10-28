@@ -1,0 +1,184 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Vé Điện Tử QR | {{ event.name }}{% endblock title %}
+{% block breadcrumb %}Vé điện tử QR{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.ticket-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    max-width: 850px;
+    margin: 0 auto;
+    border: 1px solid #e2e8f0;
+}
+.ticket-header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    padding: 30px;
+    position: relative;
+}
+.ticket-header::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: #ffffff;
+    border-radius: 20px 20px 0 0;
+}
+.ticket-body {
+    padding: 40px 30px 30px;
+}
+.ticket-code-badge {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: inline-block;
+}
+.qr-container {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.status-badge-lg {
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-waiting { background: #fef3c7; color: #b45309; }
+.status-attending { background: #d1fae5; color: #047857; }
+.status-absent { background: #fee2e2; color: #b91c1c; }
+
+@media print {
+    body * { visibility: hidden; }
+    .ticket-card, .ticket-card * { visibility: visible; }
+    .ticket-card { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; }
+    .no-print { display: none !important; }
+}
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center max-w-850 mx-auto mb-4 no-print" style="max-width:850px;">
+        <a href="{% url 'my-tickets' %}" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;">
+            <i class="fas fa-arrow-left mr-1"></i>Vé của tôi
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary btn-sm" style="border-radius:10px;">
+                <i class="fas fa-print mr-1"></i>In vé / Tải PDF
+            </button>
+            <a href="{% url 'event-checkin' %}?ticket={{ ticket_code }}" class="btn btn-success btn-sm" style="border-radius:10px;">
+                <i class="fas fa-qrcode mr-1"></i>Trang điểm danh
+            </a>
+        </div>
+    </div>
+
+    <!-- Ticket Card -->
+    <div class="ticket-card">
+        <!-- Header -->
+        <div class="ticket-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="ticket-code-badge mb-2">MÃ VÉ: #{{ ticket_code }}</div>
+                    <h2 style="font-weight:900; margin:0; font-size:24px;">{{ event.name }}</h2>
+                    <div style="font-size:14px; opacity:0.9; margin-top:6px;">
+                        <i class="fas fa-tag mr-1"></i>{{ event.category }}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-right mt-3 mt-md-0">
+                    {% if member.attend_status == 'attending' or member.attend_status == 'completed' %}
+                    <span class="status-badge-lg status-attending">
+                        <i class="fas fa-check-circle"></i> ĐÃ ĐIỂM DANH
+                    </span>
+                    {% elif member.attend_status == 'absent' %}
+                    <span class="status-badge-lg status-absent">
+                        <i class="fas fa-times-circle"></i> VẮNG MẶT
+                    </span>
+                    {% else %}
+                    <span class="status-badge-lg status-waiting">
+                        <i class="fas fa-clock"></i> CHỜ ĐIỂM DANH
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="ticket-body">
+            <div class="row">
+                <!-- Info Left -->
+                <div class="col-md-7">
+                    <h6 class="text-uppercase text-muted" style="font-size:11px; font-weight:800; letter-spacing:1px;">Thông tin tham dự</h6>
+                    <div class="mb-4">
+                        <div style="font-size:18px; font-weight:800; color:#1e293b;">
+                            {{ member.user.get_full_name|default:member.user.username }}
+                        </div>
+                        <div class="text-muted" style="font-size:13px;">
+                            <i class="fas fa-envelope mr-1"></i>{{ member.user.email|default:"Chưa cập nhật email" }}
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted" style="font-size:11px; font-weight:800; letter-spacing:1px;">Thời gian & Địa điểm</h6>
+                    <div class="mb-3">
+                        <div style="font-size:14px; font-weight:700; color:#334155;">
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>{{ event.start_date|date:"d/m/Y" }} - {{ event.end_date|date:"d/m/Y" }}
+                        </div>
+                        <div style="font-size:14px; color:#475569; margin-top:4px;">
+                            <i class="fas fa-map-marker-alt text-danger mr-2"></i>{{ event.venue }}
+                        </div>
+                    </div>
+
+                    {% if event.description %}
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-uppercase text-muted" style="font-size:11px; font-weight:800; letter-spacing:1px;">Ghi chú sự kiện</h6>
+                        <div style="font-size:13px; color:#64748b;">
+                            {{ event.description|striptags|truncatewords:25 }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- QR Right -->
+                <div class="col-md-5 mt-4 mt-md-0">
+                    <div class="qr-container">
+                        <div style="font-size:12px; font-weight:700; color:#475569; margin-bottom:12px;">MÃ QR XÁC THỰC VÉ</div>
+                        
+                        <!-- QR Code Image generated via API & JS -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ request.scheme }}://{{ request.get_host }}{% url 'event-checkin' %}?ticket={{ ticket_code }}" 
+                             alt="Vé QR {{ ticket_code }}" 
+                             style="width:180px; height:180px; border-radius:12px; border:4px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1);" />
+                        
+                        <div style="font-size:13px; font-weight:800; color:#1e293b; margin-top:12px; font-family:monospace; letter-spacing:1px;">
+                            {{ ticket_code }}
+                        </div>
+                        <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+                            Vui lòng đưa mã QR này cho ban tổ chức tại quầy check-in
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

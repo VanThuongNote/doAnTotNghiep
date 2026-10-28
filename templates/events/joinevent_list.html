@@ -1,0 +1,148 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Danh sách đăng ký tham gia | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Danh sách đăng ký{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.premium-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    border: none;
+    overflow: hidden;
+}
+.action-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; transition: all 0.2s;
+    text-decoration: none;
+}
+.action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+.avatar-sm {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; font-size: 13px; flex-shrink: 0;
+}
+.attend-badge { padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px; }
+.attend-present { background:#d1fae5;color:#065f46; }
+.attend-absent  { background:#fee2e2;color:#991b1b; }
+.attend-pending { background:#fef3c7;color:#92400e; }
+.status-badge   { padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700; }
+.status-active  { background:#dbeafe;color:#1e40af; }
+.status-inactive{ background:#f1f5f9;color:#64748b; }
+.search-box {
+    border-radius: 10px; border: 1.5px solid #e2e8f0;
+    padding: 8px 16px; font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+}
+.search-box:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="background:linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);border:none;padding:22px 28px;gap:12px;">
+        <div class="d-flex align-items-center">
+            <div style="width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:14px;">
+                <i class="fas fa-clipboard-list" style="color:#fff;font-size:18px;"></i>
+            </div>
+            <div>
+                <h5 style="color:#fff;font-weight:800;margin:0;font-size:17px;">Danh sách đăng ký tham gia</h5>
+                <div style="font-size:12px;color:rgba(255,255,255,0.75);">{{ eventmember|length }} thành viên đã đăng ký</div>
+            </div>
+        </div>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'add-event-member' %}" class="btn btn-light btn-sm font-weight-bold" style="border-radius:10px;">
+            <i class="fas fa-user-plus mr-1"></i>Thêm thành viên
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Search bar -->
+    <div style="padding:16px 24px;background:#f8fafc;border-bottom:1px solid #f1f5f9;">
+        <input type="text" id="memberSearch" class="search-box" placeholder="🔍  Tìm theo tên thành viên hoặc sự kiện..." style="width:100%;max-width:400px;">
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="memberTable">
+                <thead style="background:#f8fafc;font-size:12px;color:#64748b;text-transform:uppercase;">
+                    <tr>
+                        <th style="padding-left:22px;width:50px;">STT</th>
+                        <th>Sự kiện</th>
+                        <th>Thành viên</th>
+                        <th>Điểm danh</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center" style="width:120px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in eventmember %}
+                    <tr>
+                        <td style="padding-left:22px;font-weight:700;color:#94a3b8;">{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'event-detail' member.event.id %}" style="font-weight:600;color:#1e293b;text-decoration:none;">
+                                {{ member.event }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm mr-2">{{ member.user|slice:":1"|upper }}</div>
+                                <span style="font-weight:600;color:#374151;font-size:13px;">{{ member.user }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if member.attend_status == 'present' or member.attend_status == 'Đã điểm danh' %}
+                            <span class="attend-badge attend-present"><i class="fas fa-check-circle" style="font-size:10px;"></i>Có mặt</span>
+                            {% elif member.attend_status == 'absent' or member.attend_status == 'Vắng mặt' %}
+                            <span class="attend-badge attend-absent"><i class="fas fa-times-circle" style="font-size:10px;"></i>Vắng mặt</span>
+                            {% else %}
+                            <span class="attend-badge attend-pending"><i class="fas fa-clock" style="font-size:10px;"></i>{{ member.attend_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if member.status == 'active' or member.status == 'Hoạt động' %}
+                            <span class="status-badge status-active">Hoạt động</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">{{ member.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'event-ticket' member.id %}" class="action-btn mr-1" style="background:#dbeafe;color:#1d4ed8;" title="Xem vé QR">
+                                <i class="fas fa-qrcode"></i>
+                            </a>
+                            {% if user.is_staff or user.is_superuser %}
+                            <a href="{% url 'remove-event-member' member.id %}" class="action-btn" style="background:#fee2e2;color:#dc2626;" title="Xóa thành viên">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:60px;color:#94a3b8;">
+                            <i class="fas fa-clipboard" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.2;color:#3b82f6;"></i>
+                            <div style="font-size:15px;font-weight:600;">Chưa có thành viên nào đăng ký</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extrascript %}
+<script>
+document.getElementById('memberSearch').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('#memberTable tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+});
+</script>
+{% endblock extrascript %}

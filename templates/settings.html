@@ -1,0 +1,349 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Cài đặt{% endblock title %}
+{% block breadcrumb_title %}Cài đặt{% endblock breadcrumb_title %}
+{% block breadcrumb %}Cài đặt{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.settings-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(79,70,229,0.08);
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.25s;
+}
+.settings-card:hover {
+    box-shadow: 0 8px 32px rgba(79,70,229,0.12);
+}
+.settings-section-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+.settings-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+.settings-section-desc {
+    font-size: 12.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.settings-divider {
+    border: none;
+    border-top: 2px solid #f1f5f9;
+    margin: 22px 0;
+}
+.password-strength-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: #e2e8f0;
+    margin-top: 6px;
+    overflow: hidden;
+}
+.password-strength-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+.toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #e2e8f0;
+    border-radius: 26px;
+    transition: .3s;
+}
+.toggle-slider:before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: .3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.toggle-switch input:checked + .toggle-slider { background: #4f46e5; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-3">
+    <!-- Settings menu -->
+    <div class="settings-card p-0" style="overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#4f46e5,#6366f1);padding:20px;">
+        <div style="color:#fff;font-weight:800;font-size:15px;"><i class="fas fa-cog mr-2"></i>Cài đặt</div>
+        <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:4px;">Tùy chỉnh tài khoản của bạn</div>
+      </div>
+      <div class="nav flex-column nav-pills p-2" id="settings-tab" role="tablist" aria-orientation="vertical">
+        <a class="nav-link active d-flex align-items-center mb-1" id="pw-tab" data-toggle="pill" href="#pw" role="tab"
+           style="border-radius:8px;font-size:13px;font-weight:600;padding:10px 14px;">
+          <i class="fas fa-lock mr-2" style="color:#4f46e5;width:16px;"></i> Bảo mật & Mật khẩu
+        </a>
+        <a class="nav-link d-flex align-items-center mb-1" id="notif-tab" data-toggle="pill" href="#notif" role="tab"
+           style="border-radius:8px;font-size:13px;font-weight:600;padding:10px 14px;">
+          <i class="fas fa-bell mr-2" style="color:#f59e0b;width:16px;"></i> Thông báo
+        </a>
+        <a class="nav-link d-flex align-items-center mb-1" id="display-tab" data-toggle="pill" href="#display" role="tab"
+           style="border-radius:8px;font-size:13px;font-weight:600;padding:10px 14px;">
+          <i class="fas fa-palette mr-2" style="color:#10b981;width:16px;"></i> Giao diện
+        </a>
+        <a class="nav-link d-flex align-items-center" id="privacy-tab" data-toggle="pill" href="#privacy" role="tab"
+           style="border-radius:8px;font-size:13px;font-weight:600;padding:10px 14px;">
+          <i class="fas fa-shield-alt mr-2" style="color:#ef4444;width:16px;"></i> Quyền riêng tư
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-9">
+    <div class="tab-content" id="settings-tabContent">
+
+      <!-- TAB: Password -->
+      <div class="tab-pane fade show active" id="pw" role="tabpanel">
+        <div class="settings-card">
+          <div class="d-flex align-items-center mb-4">
+            <div class="settings-section-icon" style="background:#ede9fe;">
+              <i class="fas fa-lock" style="color:#4f46e5;"></i>
+            </div>
+            <div>
+              <div class="settings-section-title">Thay đổi mật khẩu</div>
+              <div class="settings-section-desc">Đảm bảo tài khoản của bạn sử dụng mật khẩu mạnh</div>
+            </div>
+          </div>
+
+          <form method="POST" action="{% url 'settings' %}" id="password-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change_password">
+            <div class="form-group">
+              <label for="old_password"><i class="fas fa-key mr-1" style="color:#94a3b8;"></i>Mật khẩu hiện tại</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="old_password" name="old_password" placeholder="Nhập mật khẩu hiện tại..." required>
+                <div class="input-group-append">
+                  <button class="btn" type="button" onclick="togglePw('old_password')" style="border:1.5px solid #e2e8f0;border-left:none;border-radius:0 8px 8px 0;background:#fafafa;">
+                    <i class="fas fa-eye" id="old_password_icon" style="color:#94a3b8;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <hr class="settings-divider">
+            <div class="form-group">
+              <label for="new_password"><i class="fas fa-lock-open mr-1" style="color:#94a3b8;"></i>Mật khẩu mới</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)..." required oninput="checkStrength(this.value)">
+                <div class="input-group-append">
+                  <button class="btn" type="button" onclick="togglePw('new_password')" style="border:1.5px solid #e2e8f0;border-left:none;border-radius:0 8px 8px 0;background:#fafafa;">
+                    <i class="fas fa-eye" id="new_password_icon" style="color:#94a3b8;"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="password-strength-bar mt-2">
+                <div class="password-strength-fill" id="strengthBar" style="width:0%;background:#e2e8f0;"></div>
+              </div>
+              <small id="strengthText" class="text-muted" style="font-size:11.5px;"></small>
+            </div>
+            <div class="form-group">
+              <label for="confirm_password"><i class="fas fa-check-double mr-1" style="color:#94a3b8;"></i>Xác nhận mật khẩu mới</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Nhập lại mật khẩu mới..." required>
+                <div class="input-group-append">
+                  <button class="btn" type="button" onclick="togglePw('confirm_password')" style="border:1.5px solid #e2e8f0;border-left:none;border-radius:0 8px 8px 0;background:#fafafa;">
+                    <i class="fas fa-eye" id="confirm_password_icon" style="color:#94a3b8;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+              <button type="submit" class="btn btn-primary" id="change-pw-btn">
+                <i class="fas fa-save mr-1"></i>Cập nhật mật khẩu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB: Notifications -->
+      <div class="tab-pane fade" id="notif" role="tabpanel">
+        <div class="settings-card">
+          <div class="d-flex align-items-center mb-4">
+            <div class="settings-section-icon" style="background:#fef3c7;">
+              <i class="fas fa-bell" style="color:#f59e0b;"></i>
+            </div>
+            <div>
+              <div class="settings-section-title">Cài đặt thông báo</div>
+              <div class="settings-section-desc">Kiểm soát các thông báo bạn nhận được</div>
+            </div>
+          </div>
+
+          {% for item in notif_items %}{% endfor %}
+          <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo email</div>
+              <div style="font-size:12px;color:#94a3b8;">Nhận thông báo qua email khi có sự kiện mới</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1e293b;">Nhắc nhở sự kiện</div>
+              <div style="font-size:12px;color:#94a3b8;">Nhắc nhở trước khi sự kiện bắt đầu</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-3">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo điểm thưởng</div>
+              <div style="font-size:12px;color:#94a3b8;">Thông báo khi nhận được điểm thưởng</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary"><i class="fas fa-save mr-1"></i>Lưu cài đặt</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Display -->
+      <div class="tab-pane fade" id="display" role="tabpanel">
+        <div class="settings-card">
+          <div class="d-flex align-items-center mb-4">
+            <div class="settings-section-icon" style="background:#d1fae5;">
+              <i class="fas fa-palette" style="color:#10b981;"></i>
+            </div>
+            <div>
+              <div class="settings-section-title">Tùy chỉnh giao diện</div>
+              <div class="settings-section-desc">Thay đổi màu sắc và hiển thị theo sở thích</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Ngôn ngữ hiển thị</label>
+            <select class="form-control">
+              <option selected>🇻🇳 Tiếng Việt</option>
+              <option>🇺🇸 English</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Múi giờ</label>
+            <select class="form-control">
+              <option selected>UTC+7 (Hà Nội, TP.HCM)</option>
+              <option>UTC+0 (London)</option>
+              <option>UTC+8 (Singapore)</option>
+            </select>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary"><i class="fas fa-save mr-1"></i>Lưu cài đặt</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Privacy -->
+      <div class="tab-pane fade" id="privacy" role="tabpanel">
+        <div class="settings-card">
+          <div class="d-flex align-items-center mb-4">
+            <div class="settings-section-icon" style="background:#fee2e2;">
+              <i class="fas fa-shield-alt" style="color:#ef4444;"></i>
+            </div>
+            <div>
+              <div class="settings-section-title">Quyền riêng tư & Bảo mật</div>
+              <div class="settings-section-desc">Kiểm soát quyền truy cập thông tin của bạn</div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1e293b;">Hiển thị email công khai</div>
+              <div style="font-size:12px;color:#94a3b8;">Cho phép người khác nhìn thấy email của bạn</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-3">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1e293b;">Xác thực hai bước</div>
+              <div style="font-size:12px;color:#94a3b8;">Tăng cường bảo mật tài khoản</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary"><i class="fas fa-save mr-1"></i>Lưu cài đặt</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extrascript %}
+<script>
+function togglePw(fieldId) {
+    var field = document.getElementById(fieldId);
+    var icon = document.getElementById(fieldId + '_icon');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function checkStrength(pw) {
+    var bar = document.getElementById('strengthBar');
+    var text = document.getElementById('strengthText');
+    var score = 0;
+    if (pw.length >= 6) score++;
+    if (pw.length >= 10) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    var levels = [
+        {pct:'10%', color:'#ef4444', label:'Rất yếu'},
+        {pct:'30%', color:'#f97316', label:'Yếu'},
+        {pct:'55%', color:'#f59e0b', label:'Trung bình'},
+        {pct:'80%', color:'#10b981', label:'Mạnh'},
+        {pct:'100%', color:'#059669', label:'Rất mạnh'},
+    ];
+    var lvl = levels[Math.min(score, 4)];
+    bar.style.width = lvl.pct;
+    bar.style.background = lvl.color;
+    text.textContent = 'Độ mạnh: ' + lvl.label;
+    text.style.color = lvl.color;
+}
+</script>
+{% endblock %}

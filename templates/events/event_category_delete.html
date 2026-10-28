@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+{% block title %}Xóa danh mục sự kiện | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Xóa danh mục{% endblock breadcrumb %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0" style="border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.1); overflow:hidden;">
+            <div class="card-body p-0">
+                <div style="background:linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding:32px; text-align:center;">
+                    <div style="width:70px;height:70px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                        <i class="fas fa-folder-minus" style="font-size:30px;color:#fff;"></i>
+                    </div>
+                    <h4 style="color:#fff;font-weight:800;margin:0;">Xác nhận xóa danh mục</h4>
+                    <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;">Hành động này không thể khôi phục</p>
+                </div>
+                <div class="p-4">
+                    {% if object %}
+                    <div class="alert alert-warning" style="border-radius:12px;border:none;background:#fef3c7;">
+                        <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+                        Bạn sắp <strong>xóa vĩnh viễn</strong> danh mục:
+                        <div style="font-size:16px;font-weight:800;color:#92400e;margin-top:8px;">{{ object.name }}</div>
+                    </div>
+                    <div class="alert alert-danger" style="border-radius:12px;border:none;font-size:13px;">
+                        <i class="fas fa-info-circle mr-1"></i> Tất cả các sự kiện thuộc danh mục này cũng có thể bị ảnh hưởng!
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning" style="border-radius:12px;border:none;background:#fef3c7;">
+                        <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+                        Bạn có <strong>chắc chắn</strong> muốn xóa danh mục sự kiện này?
+                    </div>
+                    {% endif %}
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{% url 'event-category-list' %}" class="btn btn-outline-secondary" style="border-radius:10px;padding:12px 24px;flex:1;margin-right:8px;">
+                                <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-danger font-weight-bold" style="border-radius:10px;padding:12px 24px;flex:1;margin-left:8px;">
+                                <i class="fas fa-trash mr-2"></i>Xóa vĩnh viễn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

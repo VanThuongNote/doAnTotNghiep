@@ -1,0 +1,148 @@
+{% extends 'base/base.html' %}
+{% block title %}Danh sách sự kiện{% endblock title %}
+{% block breadcrumb %}Danh sách sự kiện{% endblock breadcrumb %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h5>Danh sách sự kiện</h5>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="row">
+                                <form class="form-inline ml-3" action="{% url 'search-event' %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="input-group input-group-sm">
+                                      <input class="form-control form-control-navbar" name="search" type="search" placeholder="Tìm kiếm" aria-label="Search">
+                                      <div class="input-group-append">
+                                        <button class="btn btn-navbar" type="submit">
+                                          <i class="fas fa-search"></i>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </form>
+                                <a class="btn" onclick="listView()"><i class="fa fa-bars"></i> Danh sách</a> 
+                                <a class="btn active" onclick="gridView()"><i class="fa fa-th-large"></i> Lưới</a>
+                                {% if user.is_staff or user.is_superuser %}
+                                <a class="btn btn-success" href="{% url 'event-create' %}">Tạo sự kiện mới</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                      <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+                        <thead>
+                            <tr role="row">
+                                <th>STT</th>
+                                <th>Tên sự kiện</th>
+                                <th>Danh mục</th>
+                                <th class="event_image">Hình ảnh</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                              <tr>
+                                  <td>{{ forloop.counter }}</td>
+                                  <td>{{ event.name }}</td>
+                                  <td>{{ event.category }}</td>
+                                  <td class="event_image">
+                                      {% if event.eventimage and event.eventimage.image %}
+                                      <img class="event_image" src="{{ event.eventimage.image.url }}" alt="Image" height="60px" width="60px" style="border-radius:10px; object-fit:cover;">
+                                      {% else %}
+                                      <span class="badge badge-light" style="padding:8px 12px;"><i class="fas fa-calendar-alt text-primary mr-1"></i>Chưa có ảnh</span>
+                                      {% endif %}
+                                  </td>
+                                  <td>
+                                      {% if user.is_staff or user.is_superuser %}
+                                          {% if event.status == 'active' %}
+                                            <a href="{% url 'update-event-status' event.id %}" class="text-success">Đang hoạt động</a>
+                                          {% elif event.status == 'completed' %}
+                                            <a href="{% url 'update-event-status' event.id %}" class="text-primary">Đã hoàn thành</a>
+                                          {% else %}
+                                            <a href="{% url 'update-event-status' event.id %}" class="text-danger">{{ event.status|title }}</a>
+                                          {% endif %}
+                                      {% else %}
+                                          {% if event.status == 'active' %}
+                                            <span class="badge badge-success">Đang hoạt động</span>
+                                          {% elif event.status == 'completed' %}
+                                            <span class="badge badge-primary">Đã hoàn thành</span>
+                                          {% else %}
+                                            <span class="badge badge-secondary">{{ event.status|title }}</span>
+                                          {% endif %}
+                                      {% endif %}
+                                  </td>
+                                  <td>
+                                      <a class="btn btn-success" href="{% url 'join-event' event.id %}" title="Đăng ký & Lấy Vé QR">
+                                          <i class="fa fa-ticket-alt"></i> Đăng ký
+                                      </a>
+                                      <a class="btn btn-info" href="{% url 'event-detail' event.pk %}" title="Xem chi tiết">
+                                          <i class="fa fa-eye"></i>
+                                      </a>
+                                      {% if user.is_staff or user.is_superuser %}
+                                      <a class="btn btn-warning text-white" href="{% url 'event-edit' event.pk %}" title="Chỉnh sửa">
+                                        <i class="fa fa-edit"></i>
+                                      </a>
+                                      <a class="btn btn-danger" href="{% url 'event-delete' event.pk %}" title="Xóa">
+                                          <i class="fa fa-trash"></i>
+                                      </a>
+                                      {% endif %}
+                                  </td>
+                              </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block extrascript %}
+<script>
+    // Get the elements with class="column"
+    var elements = document.getElementsByClassName("table");
+    var myobj = document.getElementsByClassName("event_image");
+    // Declare a loop variable
+    var i;
+
+    // List View
+    function listView() {
+        for (i = 0; i < elements.length; i++) {
+
+            var appBanners = document.getElementsByClassName('event_image');
+
+            for (var i = 0; i < appBanners.length; i ++) {
+                appBanners[i].style.display = 'none';
+            }
+        }
+    }
+    
+    // Grid View
+    function gridView() {
+      for (i = 0; i < elements.length; i++) {
+        var appBanners = document.getElementsByClassName('event_image');
+
+        for (var i = 0; i < appBanners.length; i ++) {
+            appBanners[i].style.display = 'block';
+        }
+      }
+    }
+    
+    /* Optional: Add active class to the current button (highlight it) */
+    var container = document.getElementById("btnContainer");
+    var btns = container.getElementsByClassName("btn");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function() {
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active", "");
+        this.className += " active";
+      });
+    }
+    </script>
+{% endblock extrascript %}

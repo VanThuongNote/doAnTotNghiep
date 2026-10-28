@@ -1,0 +1,239 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Hồ sơ cá nhân{% endblock title %}
+{% block breadcrumb_title %}Hồ sơ cá nhân{% endblock breadcrumb_title %}
+{% block breadcrumb %}Hồ sơ cá nhân{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.profile-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(79,70,229,0.08);
+    overflow: hidden;
+}
+.profile-header-bg {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #818cf8 100%);
+    height: 120px;
+    position: relative;
+}
+.profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -50px;
+    padding: 0 16px 20px;
+    position: relative;
+    z-index: 2;
+}
+.profile-avatar-section img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 24px rgba(79,70,229,0.25);
+    object-fit: cover;
+    margin-bottom: 8px;
+    background: #fff;
+    transition: all 0.25s;
+}
+.profile-avatar-section img:hover {
+    box-shadow: 0 10px 30px rgba(79,70,229,0.4);
+    transform: scale(1.04);
+}
+.profile-name {
+    font-size: 19px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-top: 4px;
+    line-height: 1.2;
+}
+.profile-role {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+.info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12.5px;
+    color: #475569;
+    font-weight: 500;
+    margin: 3px;
+}
+.stat-widget {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border-radius: 12px;
+    padding: 18px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.25);
+    transition: all 0.25s;
+}
+.stat-widget:hover { transform: translateY(-3px); }
+.stat-widget .num { font-size: 32px; font-weight: 800; }
+.stat-widget .lbl { font-size: 12px; opacity: 0.85; font-weight: 500; }
+.stat-widget.green { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 16px rgba(5,150,105,0.25); }
+.stat-widget.orange { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 4px 16px rgba(217,119,6,0.25); }
+.form-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4f46e5;
+    border-bottom: 2px solid #e0e7ff;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Left column: Profile card -->
+  <div class="col-md-4">
+    <div class="profile-card mb-4">
+      <div class="profile-header-bg">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2280%22 cy=%2220%22 r=%2230%22 fill=%22rgba(255,255,255,0.07)%22/><circle cx=%2210%22 cy=%2270%22 r=%2240%22 fill=%22rgba(255,255,255,0.05)%22/></svg>');"></div>
+      </div>
+      <div class="profile-avatar-section">
+        <img src="{{ profile.avatar_url }}" alt="Avatar" id="avatarImg">
+        <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="profile-role">
+          {% if user.is_superuser %}
+            <span style="color:#4f46e5;"><i class="fas fa-crown mr-1"></i>Quản trị viên</span>
+          {% else %}
+            <span><i class="fas fa-user mr-1"></i>Người dùng</span>
+          {% endif %}
+        </div>
+        <div class="mt-2 text-center">
+          <span class="info-badge"><i class="fas fa-envelope" style="color:#4f46e5;"></i> {{ user.email|default:"Chưa có email" }}</span>
+          <span class="info-badge"><i class="fas fa-phone" style="color:#4f46e5;"></i> {{ profile.phone|default:"Chưa có SĐT" }}</span>
+          <span class="info-badge"><i class="fas fa-map-marker-alt" style="color:#4f46e5;"></i> {{ profile.address|default:"Chưa có địa chỉ" }}</span>
+          <span class="info-badge"><i class="fas fa-calendar" style="color:#4f46e5;"></i> {{ user.date_joined|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+      <div class="col-4 pr-1">
+        <div class="stat-widget">
+          <div class="num">{{ total_registered }}</div>
+          <div class="lbl">Sự kiện</div>
+        </div>
+      </div>
+      <div class="col-4 px-1">
+        <div class="stat-widget green">
+          <div class="num">{{ completed_count }}</div>
+          <div class="lbl">Hoàn thành</div>
+        </div>
+      </div>
+      <div class="col-4 pl-1">
+        <div class="stat-widget orange">
+          <div class="num">{{ points }}</div>
+          <div class="lbl">Điểm</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: Edit form -->
+  <div class="col-md-8">
+    <div class="profile-card p-4">
+      <div class="form-section-title"><i class="fas fa-edit mr-2"></i>Chỉnh sửa thông tin cá nhân</div>
+      <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" id="profile-edit-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_avatar"><i class="fas fa-camera mr-1" style="color:#4f46e5;"></i>Ảnh đại diện (Avatar)</label>
+          <input type="file" class="form-control-file" id="id_avatar" name="avatar" accept="image/*">
+          <small class="text-muted">Chọn ảnh đại diện mới của bạn (JPG, PNG, GIF...)</small>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_first_name"><i class="fas fa-signature mr-1" style="color:#4f46e5;"></i>Họ</label>
+              <input type="text" class="form-control" id="id_first_name" name="first_name" value="{{ user.first_name }}" placeholder="Nhập họ...">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_last_name"><i class="fas fa-signature mr-1" style="color:#4f46e5;"></i>Tên</label>
+              <input type="text" class="form-control" id="id_last_name" name="last_name" value="{{ user.last_name }}" placeholder="Nhập tên...">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_phone"><i class="fas fa-phone mr-1" style="color:#4f46e5;"></i>Số điện thoại</label>
+              <input type="text" class="form-control" id="id_phone" name="phone" value="{{ profile.phone|default:'' }}" placeholder="Nhập số điện thoại...">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_email"><i class="fas fa-envelope mr-1" style="color:#4f46e5;"></i>Email</label>
+              <input type="email" class="form-control" id="id_email" name="email" value="{{ user.email }}" placeholder="Nhập địa chỉ email...">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="id_address"><i class="fas fa-map-marker-alt mr-1" style="color:#4f46e5;"></i>Địa chỉ</label>
+          <input type="text" class="form-control" id="id_address" name="address" value="{{ profile.address|default:'' }}" placeholder="Nhập địa chỉ cư trú / làm việc...">
+        </div>
+        <div class="form-group">
+          <label for="id_username"><i class="fas fa-user mr-1" style="color:#4f46e5;"></i>Tên đăng nhập</label>
+          <input type="text" class="form-control" id="id_username" value="{{ user.username }}" disabled style="background:#f8fafc;cursor:not-allowed;">
+          <small class="text-muted">Tên đăng nhập không thể thay đổi.</small>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3" style="gap:10px;">
+          <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="background:#e2e8f0;border:none;color:#475569;">
+            <i class="fas fa-times mr-1"></i>Hủy
+          </a>
+          <button type="submit" class="btn btn-primary" id="save-profile-btn">
+            <i class="fas fa-save mr-1"></i>Lưu thay đổi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Account info -->
+    <div class="profile-card p-4 mt-4">
+      <div class="form-section-title"><i class="fas fa-info-circle mr-2"></i>Thông tin tài khoản</div>
+      <div class="row">
+        <div class="col-md-6">
+          <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ngày tạo tài khoản</div>
+            <div style="font-size:14px;font-weight:700;color:#1e293b;margin-top:4px;">{{ user.date_joined|date:"d/m/Y H:i" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Đăng nhập lần cuối</div>
+            <div style="font-size:14px;font-weight:700;color:#1e293b;margin-top:4px;">{{ user.last_login|date:"d/m/Y H:i"|default:"Chưa có dữ liệu" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:#f8fafc;border-radius:10px;padding:14px;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Trạng thái tài khoản</div>
+            <div style="font-size:14px;font-weight:700;margin-top:4px;">
+              {% if user.is_active %}<span style="color:#059669;"><i class="fas fa-check-circle mr-1"></i>Đang hoạt động</span>{% else %}<span style="color:#ef4444;"><i class="fas fa-times-circle mr-1"></i>Bị khóa</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:#f8fafc;border-radius:10px;padding:14px;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Quyền hạn</div>
+            <div style="font-size:14px;font-weight:700;margin-top:4px;">
+              {% if user.is_superuser %}<span style="color:#4f46e5;"><i class="fas fa-crown mr-1"></i>Quản trị viên</span>{% elif user.is_staff %}<span style="color:#0ea5e9;"><i class="fas fa-user-tie mr-1"></i>Nhân viên</span>{% else %}<span style="color:#64748b;"><i class="fas fa-user mr-1"></i>Người dùng</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

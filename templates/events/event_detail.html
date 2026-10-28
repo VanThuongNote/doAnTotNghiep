@@ -1,0 +1,171 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Chi tiết sự kiện | {{ event.name }}{% endblock title %}
+{% block breadcrumb %}Chi tiết sự kiện{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.event-detail-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: none;
+    margin-bottom: 24px;
+}
+.event-banner-wrap {
+    height: 360px;
+    position: relative;
+    overflow: hidden;
+    background: #0f172a;
+}
+.event-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+}
+.event-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(15,23,42,0.95) 100%);
+    color: white;
+}
+.meta-box {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    height: 100%;
+}
+.meta-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <div class="event-detail-card">
+        <!-- Banner Header -->
+        <div class="event-banner-wrap">
+            {% if event.eventimage.image %}
+            <img src="{{ event.eventimage.image.url }}" alt="{{ event.name }}" class="event-banner-img">
+            {% else %}
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary text-white">
+                <i class="fas fa-calendar-alt fa-4x"></i>
+            </div>
+            {% endif %}
+            <div class="event-overlay">
+                <span class="badge badge-primary px-3 py-1 mb-2" style="font-size:12px; border-radius:20px; font-weight:700;">
+                    {{ event.category }}
+                </span>
+                <h1 style="font-weight:900; font-size:32px; margin:0 0 10px;">{{ event.name }}</h1>
+                <div class="d-flex flex-wrap gap-4" style="font-size:14px; opacity:0.9;">
+                    <span class="mr-3"><i class="fas fa-calendar-alt text-primary mr-2"></i>{{ event.start_date|date:"d/m/Y" }} - {{ event.end_date|date:"d/m/Y" }}</span>
+                    <span><i class="fas fa-map-marker-alt text-danger mr-2"></i>{{ event.venue }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Body -->
+        <div class="p-4">
+            <!-- Action Bar -->
+            <div class="row align-items-center mb-4">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge {% if event.status == 'active' %}badge-success{% else %}badge-secondary{% endif %} px-3 py-2" style="font-size:13px; border-radius:8px;">
+                            Trạng thái: {{ event.status|title }}
+                        </span>
+                        <span class="text-muted ml-3" style="font-size:13px;">
+                            <i class="fas fa-users text-info mr-1"></i>Giới hạn: <strong>{{ event.maximum_attende }}</strong> người tham gia
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                    <a href="{% url 'join-event' event.id %}" class="btn btn-primary btn-lg font-weight-bold shadow" style="border-radius:12px; padding:12px 28px;">
+                        <i class="fas fa-ticket-alt mr-2"></i>ĐĂNG KÝ THAM GIA (NHẬN VÉ QR)
+                    </a>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Meta Cards Row -->
+            <div class="row mb-4">
+                <div class="col-md-3 col-6 mb-3 mb-md-0">
+                    <div class="meta-box">
+                        <div class="meta-icon style-indigo" style="background:#e0e7ff; color:#4338ca;">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="text-muted style-12" style="font-size:12px; font-weight:700; text-transform:uppercase;">Điểm thưởng</div>
+                        <div style="font-size:22px; font-weight:800; color:#1e293b;">+{{ event.points }} pts</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3 mb-md-0">
+                    <div class="meta-box">
+                        <div class="meta-icon" style="background:#dcfce7; color:#15803d;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="text-muted style-12" style="font-size:12px; font-weight:700; text-transform:uppercase;">Lịch trình</div>
+                        <div style="font-size:16px; font-weight:800; color:#1e293b; margin-top:4px;">{{ event.scheduled_status|title }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="meta-box">
+                        <div class="meta-icon" style="background:#fef3c7; color:#b45309;">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="text-muted style-12" style="font-size:12px; font-weight:700; text-transform:uppercase;">Quy mô sự kiện</div>
+                        <div style="font-size:22px; font-weight:800; color:#1e293b;">{{ event.maximum_attende }} chỗ</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="meta-box">
+                        <div class="meta-icon" style="background:#fae8ff; color:#a21caf;">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="text-muted style-12" style="font-size:12px; font-weight:700; text-transform:uppercase;">Ngành nghề</div>
+                        <div style="font-size:16px; font-weight:800; color:#1e293b; margin-top:4px;">{{ event.job_category }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-4">
+                <h5 style="font-weight:800; color:#1e293b; margin-bottom:14px;">Mô tả chi tiết sự kiện</h5>
+                <div style="line-height:1.8; color:#475569; font-size:15px;">
+                    {{ event.description|safe }}
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="mt-5 pt-3 border-top d-flex justify-content-between align-items-center">
+                <a href="{% url 'event-list' %}" class="btn btn-outline-secondary" style="border-radius:10px;">
+                    <i class="fas fa-arrow-left mr-1"></i>Quay lại danh sách
+                </a>
+                <div>
+                    {% if user.is_staff or user.is_superuser %}
+                    <a href="{% url 'event-edit' event.pk %}" class="btn btn-outline-info mr-2" style="border-radius:10px;">
+                        <i class="fas fa-edit mr-1"></i>Chỉnh sửa
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'join-event' event.id %}" class="btn btn-success font-weight-bold" style="border-radius:10px;">
+                        <i class="fas fa-qrcode mr-1"></i>Đăng ký & Lấy Vé QR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

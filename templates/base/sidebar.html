@@ -1,0 +1,230 @@
+{% load static %}
+
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
+  <a href="{% url 'dashboard' %}" class="brand-link">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="brand-image elevation-3" style="opacity:.9; border-radius:8px; width:32px; height:32px; object-fit:cover;">
+    <span class="brand-text" style="font-size:15px; font-weight:800; letter-spacing:0.5px;">
+      <span style="color:#a5b4fc;">Sự Kiện</span> <span style="color:#fff;">Pro</span>
+    </span>
+  </a>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Sidebar user panel -->
+    <div class="user-panel mt-3 mb-3 d-flex align-items-center" style="padding:10px 12px; background:rgba(255,255,255,0.06); border-radius:12px; margin:12px 10px; border:1px solid rgba(255,255,255,0.08);">
+      <div class="image" style="padding-left:0;">
+        <a href="{% url 'profile' %}">
+          <img src="{{ user.profile.avatar_url|default:'/static/img/user.jpg' }}" class="img-circle elevation-2" alt="User Image" style="cursor:pointer; width:38px; height:38px; object-fit:cover; border:2px solid rgba(255,255,255,0.2);" title="Xem hồ sơ">
+        </a>
+      </div>
+      <div class="info" style="padding-left:10px; overflow:hidden;">
+        <a href="{% url 'profile' %}" class="d-block text-truncate" style="color:#f8fafc; font-weight:700; font-size:13.5px; line-height:1.2;">
+          {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Quản trị viên{% endif %}
+        </a>
+        <div style="font-size:11px; margin-top:3px; line-height:1;">
+          {% if user.is_superuser %}<span style="color:#fbbf24; font-weight:600;"><i class="fas fa-crown mr-1"></i>Quản trị viên</span>{% else %}<span style="color:#94a3b8; font-weight:500;"><i class="fas fa-user mr-1"></i>Thành viên</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+        <!-- Dashboard -->
+        <li class="nav-item">
+          <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Bảng điều khiển</p>
+          </a>
+        </li>
+
+        <!-- Danh mục sự kiện -->
+        <li class="nav-item has-treeview {% if 'category' in request.path %}menu-open{% endif %}">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-folder-open"></i>
+            <p>
+              Danh mục sự kiện
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            {% if user.is_staff or user.is_superuser %}
+            <li class="nav-item">
+              <a href="{% url 'create-event-category' %}" class="nav-link">
+                <i class="fas fa-plus-circle nav-icon" style="color:#a5b4fc;"></i>
+                <p>Tạo danh mục</p>
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a href="{% url 'event-category-list' %}" class="nav-link">
+                <i class="fas fa-list nav-icon" style="color:#a5b4fc;"></i>
+                <p>Danh sách danh mục</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Quản lý sự kiện -->
+        <li class="nav-item has-treeview {% if 'event' in request.path and 'category' not in request.path %}menu-open{% endif %}">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-calendar-alt"></i>
+            <p>
+              Quản lý sự kiện
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            {% if user.is_staff or user.is_superuser %}
+            <li class="nav-item">
+              <a href="{% url 'event-create' %}" class="nav-link">
+                <i class="fas fa-plus-circle nav-icon" style="color:#6ee7b7;"></i>
+                <p>Tạo sự kiện mới</p>
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a href="{% url 'event-list' %}" class="nav-link">
+                <i class="fas fa-list nav-icon" style="color:#6ee7b7;"></i>
+                <p>Danh sách sự kiện</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'complete-event' %}" class="nav-link">
+                <i class="fas fa-check-circle nav-icon" style="color:#6ee7b7;"></i>
+                <p>Sự kiện hoàn thành</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Thành viên & điểm -->
+        <li class="nav-item has-treeview">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-users"></i>
+            <p>
+              Thành viên
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            {% if user.is_staff or user.is_superuser %}
+            <li class="nav-item">
+              <a href="{% url 'add-event-member' %}" class="nav-link">
+                <i class="fas fa-user-plus nav-icon" style="color:#fbbf24;"></i>
+                <p>Thêm thành viên</p>
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a href="{% url 'join-event-list' %}" class="nav-link">
+                <i class="fas fa-clipboard-list nav-icon" style="color:#fbbf24;"></i>
+                <p>DS đăng ký tham gia</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'absense-user' %}" class="nav-link">
+                <i class="fas fa-user-times nav-icon" style="color:#fbbf24;"></i>
+                <p>DS vắng mặt</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'complete-event-user' %}" class="nav-link">
+                <i class="fas fa-user-check nav-icon" style="color:#fbbf24;"></i>
+                <p>DS hoàn thành</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Yêu thích & điểm -->
+        <li class="nav-item has-treeview">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-star"></i>
+            <p>
+              Yêu thích & Điểm
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="{% url 'event-wish-list' %}" class="nav-link">
+                <i class="fas fa-heart nav-icon" style="color:#f87171;"></i>
+                <p>DS yêu thích</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'add-event-wish-user' %}" class="nav-link">
+                <i class="fas fa-plus nav-icon" style="color:#f87171;"></i>
+                <p>Thêm yêu thích</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'user-mark' %}" class="nav-link">
+                <i class="fas fa-coins nav-icon" style="color:#f87171;"></i>
+                <p>Bảng điểm</p>
+              </a>
+            </li>
+            {% if user.is_staff or user.is_superuser %}
+            <li class="nav-item">
+              <a href="{% url 'create-user-mark' %}" class="nav-link">
+                <i class="fas fa-plus-square nav-icon" style="color:#f87171;"></i>
+                <p>Tạo điểm người dùng</p>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+
+        <!-- Vé QR & Điểm Danh -->
+        <li class="nav-item has-treeview {% if 'ticket' in request.path or 'checkin' in request.path %}menu-open{% endif %}">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-ticket-alt style-warning" style="color:#fbbf24;"></i>
+            <p>
+              Vé QR & Điểm danh
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="{% url 'my-tickets' %}" class="nav-link {% if request.resolver_match.url_name == 'my-tickets' %}active{% endif %}">
+                <i class="fas fa-qrcode nav-icon" style="color:#38bdf8;"></i>
+                <p>Vé QR của tôi</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'event-checkin' %}" class="nav-link {% if request.resolver_match.url_name == 'event-checkin' %}active{% endif %}">
+                <i class="fas fa-user-check nav-icon" style="color:#4ade80;"></i>
+                <p>Điểm danh người tham dự</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Divider -->
+        <li class="nav-item" style="margin: 12px 8px 4px;">
+          <span style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:1px;padding:0 6px;">Tài khoản</span>
+        </li>
+
+        <li class="nav-item">
+          <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="nav-icon fas fa-user-circle"></i>
+            <p>Hồ sơ cá nhân</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{% url 'settings' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+            <i class="nav-icon fas fa-cog"></i>
+            <p>Cài đặt</p>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+  </div>
+  <!-- /.sidebar -->
+</aside>

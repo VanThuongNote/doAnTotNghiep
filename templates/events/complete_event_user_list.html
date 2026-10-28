@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Thành viên đã hoàn thành | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Thành viên hoàn thành{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.premium-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    border: none;
+    overflow: hidden;
+}
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-card">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg, #059669 0%, #10b981 100%);border:none;padding:22px 28px;">
+        <div class="d-flex align-items-center">
+            <div style="width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:14px;">
+                <i class="fas fa-users" style="color:#fff;font-size:18px;"></i>
+            </div>
+            <div>
+                <h5 style="color:#fff;font-weight:800;margin:0;font-size:17px;">Thành viên hoàn thành sự kiện</h5>
+                <div style="font-size:12px;color:rgba(255,255,255,0.75);">{{ completeuser|length }} thành viên</div>
+            </div>
+        </div>
+        <a href="{% url 'event-create' %}" class="btn btn-light btn-sm font-weight-bold" style="border-radius:10px;">
+            <i class="fas fa-plus mr-1"></i>Tạo sự kiện mới
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:#f8fafc;font-size:12px;color:#64748b;">
+                    <tr>
+                        <th style="padding-left:22px;">STT</th>
+                        <th>Người dùng</th>
+                        <th>Sự kiện</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in completeuser %}
+                    <tr>
+                        <td style="padding-left:22px;font-weight:700;color:#94a3b8;">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm mr-2">{{ item.user|slice:":1"|upper }}</div>
+                                <span style="font-weight:600;color:#1e293b;">{{ item.user }}</span>
+                            </div>
+                        </td>
+                        <td style="color:#374151;">{{ item.event }}</td>
+                        <td>
+                            <span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">
+                                <i class="fas fa-check-circle mr-1" style="font-size:10px;"></i>{{ item.get_attend_status_display|default:"Đã hoàn thành" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align:center;padding:60px;color:#94a3b8;">
+                            <i class="fas fa-users-slash" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.25;"></i>
+                            <div style="font-size:15px;font-weight:600;">Chưa có thành viên nào hoàn thành</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}

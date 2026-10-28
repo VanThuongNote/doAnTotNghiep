@@ -1,0 +1,298 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Bảng điều khiển | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb_title %}Bảng điều khiển{% endblock breadcrumb_title %}
+{% block breadcrumb %}Trang chủ{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.stat-card {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 20px;
+}
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+    text-decoration: none;
+}
+.stat-card .inner { padding: 22px 22px 14px; position: relative; z-index: 1; }
+.stat-card .stat-icon {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    font-size: 52px;
+    opacity: 0.15;
+}
+.stat-card .stat-num {
+    font-size: 46px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+}
+.stat-card .stat-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-top: 6px;
+}
+.stat-card-footer {
+    background: rgba(0,0,0,0.12);
+    padding: 10px 22px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.25s;
+}
+.stat-card:hover .stat-card-footer { background: rgba(0,0,0,0.2); }
+.stat-card-footer i { font-size: 14px; }
+
+.gradient-indigo { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+.gradient-emerald { background: linear-gradient(135deg, #059669 0%, #34d399 100%); }
+.gradient-amber { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
+.gradient-rose { background: linear-gradient(135deg, #dc2626 0%, #fb7185 100%); }
+
+.events-table-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    overflow: hidden;
+    background: #fff;
+}
+.events-table-card .card-header {
+    background: #fff;
+    border-bottom: 2px solid #f1f5f9;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.events-table-card .card-header h5 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.status-active { background: #ecfdf5; color: #059669; }
+.status-completed { background: #ede9fe; color: #6d28d9; }
+.status-other { background: #fef2f2; color: #dc2626; }
+.action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    border: none;
+    margin: 0 2px;
+}
+.action-btn:hover { transform: scale(1.1); }
+
+.welcome-banner {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #818cf8 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: white;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 24px rgba(79,70,229,0.3);
+    position: relative;
+    overflow: hidden;
+}
+.welcome-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+.welcome-banner::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    right: 15%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <div class="row align-items-center" style="position:relative;z-index:1;">
+        <div class="col-md-8">
+            <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Xin chào 👋</div>
+            <h2 style="font-size:26px;font-weight:900;margin:0 0 8px;color:#fff;">{{ user.get_full_name|default:user.username }}</h2>
+            <p style="font-size:14px;color:rgba(255,255,255,0.75);margin:0;">Chào mừng bạn trở lại hệ thống quản lý sự kiện. Hôm nay là một ngày tốt lành!</p>
+        </div>
+        <div class="col-md-4 text-right d-none d-md-block">
+            <i class="fas fa-calendar-check" style="font-size:80px;opacity:0.15;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row">
+    <div class="col-lg-3 col-md-6">
+        <a href="{% url 'event-category-list' %}" class="stat-card gradient-indigo">
+            <div class="inner">
+                <i class="fas fa-folder-open stat-icon"></i>
+                <div class="stat-num">{% if event_ctg %}{{ event_ctg }}{% else %}0{% endif %}</div>
+                <div class="stat-label">Danh mục sự kiện</div>
+            </div>
+            <div class="stat-card-footer">
+                <span>Xem chi tiết</span>
+                <i class="fas fa-arrow-circle-right"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{% url 'event-list' %}" class="stat-card gradient-emerald">
+            <div class="inner">
+                <i class="fas fa-calendar-alt stat-icon"></i>
+                <div class="stat-num">{% if event %}{{ event }}{% else %}0{% endif %}</div>
+                <div class="stat-label">Tổng số sự kiện</div>
+            </div>
+            <div class="stat-card-footer">
+                <span>Xem chi tiết</span>
+                <i class="fas fa-arrow-circle-right"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{% url 'join-event-list' %}" class="stat-card gradient-amber">
+            <div class="inner">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-num">{% if user_count %}{{ user_count }}{% else %}0{% endif %}</div>
+                <div class="stat-label">Người dùng hệ thống</div>
+            </div>
+            <div class="stat-card-footer">
+                <span>Xem chi tiết</span>
+                <i class="fas fa-arrow-circle-right"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{% url 'complete-event' %}" class="stat-card gradient-rose">
+            <div class="inner">
+                <i class="fas fa-check-double stat-icon"></i>
+                <div class="stat-num">{% if complete_event %}{{ complete_event }}{% else %}0{% endif %}</div>
+                <div class="stat-label">Sự kiện hoàn thành</div>
+            </div>
+            <div class="stat-card-footer">
+                <span>Xem chi tiết</span>
+                <i class="fas fa-arrow-circle-right"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Events Table -->
+<div class="events-table-card">
+    <div class="card-header">
+        <div class="d-flex align-items-center">
+            <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:12px;">
+                <i class="fas fa-list" style="color:#fff;font-size:15px;"></i>
+            </div>
+            <h5>Danh sách sự kiện gần đây</h5>
+        </div>
+        <a href="{% url 'event-create' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus mr-1"></i>Tạo mới
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:50px;padding-left:22px;">STT</th>
+                        <th>Tên sự kiện</th>
+                        <th>Danh mục</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Địa điểm</th>
+                        <th>Trạng thái</th>
+                        <th style="width:120px;text-align:center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td style="padding-left:22px;font-weight:700;color:#94a3b8;">{{ forloop.counter }}</td>
+                        <td>
+                            <div style="font-weight:700;color:#1e293b;font-size:13.5px;">{{ event.name|capfirst }}</div>
+                        </td>
+                        <td>
+                            <span style="background:#ede9fe;color:#5b21b6;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;">{{ event.category }}</span>
+                        </td>
+                        <td style="color:#64748b;font-size:13px;">{{ event.start_date|date:"d/m/Y" }}</td>
+                        <td style="color:#64748b;font-size:13px;">{{ event.end_date|date:"d/m/Y" }}</td>
+                        <td style="color:#64748b;font-size:13px;">{{ event.venue|capfirst|truncatechars:25 }}</td>
+                        <td>
+                            {% if event.status == 'active' %}
+                            <span class="status-badge status-active"><i class="fas fa-circle" style="font-size:7px;"></i>Hoạt động</span>
+                            {% elif event.status == 'completed' %}
+                            <span class="status-badge status-completed"><i class="fas fa-check-circle" style="font-size:10px;"></i>Hoàn thành</span>
+                            {% else %}
+                            <a href="{% url 'update-event-status' event.id %}">
+                                <span class="status-badge status-other"><i class="fas fa-dot-circle" style="font-size:9px;"></i>{{ event.status|title }}</span>
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td style="text-align:center;">
+                            <a class="action-btn" href="{% url 'event-detail' event.pk %}" title="Xem chi tiết" style="background:#ede9fe;color:#6d28d9;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a class="action-btn" href="{% url 'event-edit' event.pk %}" title="Chỉnh sửa" style="background:#dbeafe;color:#1d4ed8;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a class="action-btn" href="{% url 'event-delete' event.pk %}" title="Xóa" style="background:#fee2e2;color:#dc2626;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:60px;color:#94a3b8;">
+                            <i class="fas fa-calendar-times" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.3;"></i>
+                            <div style="font-size:15px;font-weight:600;">Chưa có sự kiện nào</div>
+                            <div style="font-size:13px;margin-top:6px;">
+                                <a href="{% url 'event-create' %}" class="btn btn-primary mt-3">
+                                    <i class="fas fa-plus mr-1"></i>Tạo sự kiện đầu tiên
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

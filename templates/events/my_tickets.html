@@ -1,0 +1,109 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Vé QR của tôi | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb %}Vé QR của tôi{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.ticket-list-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: #fff;
+}
+.ticket-list-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+.ticket-banner {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: white;
+    padding: 20px;
+}
+.status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.status-waiting { background: #fef3c7; color: #92400e; }
+.status-attending { background: #d1fae5; color: #065f46; }
+.status-absent { background: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 style="font-weight:800; color:#1e293b; margin:0;">Danh sách Vé QR của tôi</h4>
+            <div style="font-size:13px; color:#64748b;">Quản lý tất cả sự kiện bạn đã đăng ký tham gia</div>
+        </div>
+        <a href="{% url 'event-list' %}" class="btn btn-primary btn-sm" style="border-radius:10px;">
+            <i class="fas fa-search mr-1"></i>Khám phá sự kiện khác
+        </a>
+    </div>
+
+    <div class="row">
+        {% for ticket in tickets %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="ticket-list-card h-100 d-flex flex-column">
+                <div class="ticket-banner">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span style="font-size:11px; font-weight:800; text-transform:uppercase; opacity:0.85;">
+                            {{ ticket.event.category }}
+                        </span>
+                        {% if ticket.attend_status == 'attending' or ticket.attend_status == 'completed' %}
+                        <span class="status-pill status-attending"><i class="fas fa-check mr-1"></i>Đã điểm danh</span>
+                        {% elif ticket.attend_status == 'absent' %}
+                        <span class="status-pill status-absent"><i class="fas fa-times mr-1"></i>Vắng mặt</span>
+                        {% else %}
+                        <span class="status-pill status-waiting"><i class="fas fa-clock mr-1"></i>Chờ điểm danh</span>
+                        {% endif %}
+                    </div>
+                    <h5 style="font-weight:800; margin:10px 0 4px; font-size:17px; line-height:1.3;">
+                        {{ ticket.event.name }}
+                    </h5>
+                    <div style="font-size:12px; font-family:monospace; opacity:0.9;">
+                        #{{ ticket.ticket_code }}
+                    </div>
+                </div>
+
+                <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+                    <div>
+                        <div style="font-size:13px; color:#475569; margin-bottom:6px;">
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>{{ ticket.event.start_date|date:"d/m/Y" }}
+                        </div>
+                        <div style="font-size:13px; color:#475569; margin-bottom:12px;">
+                            <i class="fas fa-map-marker-alt text-danger mr-2"></i>{{ ticket.event.venue|truncatechars:30 }}
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span style="font-size:11px; color:#94a3b8;">
+                            Đăng ký: {{ ticket.created_date|date:"d/m/Y" }}
+                        </span>
+                        <a href="{% url 'event-ticket' ticket.id %}" class="btn btn-outline-primary btn-sm" style="border-radius:10px; font-weight:700;">
+                            <i class="fas fa-qrcode mr-1"></i>Xem Vé QR
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div style="background:#fff; border-radius:16px; padding:50px; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+                <i class="fas fa-ticket-alt text-muted" style="font-size:54px; opacity:0.3; margin-bottom:16px;"></i>
+                <h5 style="font-weight:700; color:#475569;">Bạn chưa đăng ký vé sự kiện nào</h5>
+                <p class="text-muted" style="font-size:13.5px;">Hãy khám phá các sự kiện hấp dẫn và đăng ký ngay để nhận vé QR điện tử.</p>
+                <a href="{% url 'event-list' %}" class="btn btn-primary mt-2" style="border-radius:10px;">
+                    <i class="fas fa-calendar-plus mr-1"></i>Xem danh sách sự kiện
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
