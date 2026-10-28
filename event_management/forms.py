@@ -3,16 +3,25 @@ from django.contrib.auth.models import User
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control',
-        'type': 'text',
-        'placeholder': 'Tên đăng nhập'
-    }))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'form-control',
-        'type': 'password',
-        'placeholder': 'Mật khẩu'
-    }))
+    """Form đăng nhập - xác thực tên đăng nhập và mật khẩu."""
+
+    username = forms.CharField(
+        label='Tên đăng nhập',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'text',
+            'placeholder': 'Tên đăng nhập',
+            'autofocus': True,
+        })
+    )
+    password = forms.CharField(
+        label='Mật khẩu',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'type': 'password',
+            'placeholder': 'Mật khẩu',
+        })
+    )
 
 
 class RegisterForm(forms.Form):
