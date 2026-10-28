@@ -9,17 +9,24 @@ from .forms import LoginForm, RegisterForm, ResetPasswordForm
 
 @login_required(login_url='login')
 def dashboard(request):
+    """
+    Trang tổng quan hệ thống.
+    Hiển thị thống kê: số danh mục, số sự kiện, số người dùng, sự kiện hoàn thành.
+    Danh sách sự kiện đang hoạt động gần nhất.
+    """
     user = User.objects.count()
     event_ctg = EventCategory.objects.count()
     event = Event.objects.count()
     complete_event = Event.objects.filter(status='completed').count()
-    events = Event.objects.all()
+    active_event = Event.objects.filter(status='active').count()
+    events = Event.objects.all().order_by('-start_date')[:10]
     context = {
         'user_count': user,
         'event_ctg': event_ctg,
         'event': event,
         'complete_event': complete_event,
-        'events': events
+        'active_event': active_event,
+        'events': events,
     }
     return render(request, 'dashboard.html', context)
 
