@@ -5,10 +5,15 @@ from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class EventCategory(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    code = models.CharField(max_length=6, unique=True)
-    image = models.ImageField(upload_to='event_category/')
-    priority = models.IntegerField(unique=True)
+    """
+    Danh mục sự kiện.
+    Mỗi sự kiện thuộc về một danh mục (VD: Công nghệ, Âm nhạc, Thể thao...).
+    """
+
+    name = models.CharField(max_length=255, unique=True, verbose_name='Tên danh mục')
+    code = models.CharField(max_length=6, unique=True, verbose_name='Mã danh mục')
+    image = models.ImageField(upload_to='event_category/', verbose_name='Ảnh đại diện')
+    priority = models.IntegerField(unique=True, verbose_name='Thứ tự ưu tiên')
     created_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='created_user')
     updated_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='updated_user')
     created_date = models.DateField(auto_now_add=True)
@@ -20,11 +25,16 @@ class EventCategory(models.Model):
         ('blocked', 'Đã khóa'),
         ('completed', 'Hoàn thành'),
     )
-    status = models.CharField(choices=status_choice, max_length=10)
+    status = models.CharField(choices=status_choice, max_length=10, verbose_name='Trạng thái')
+
+    class Meta:
+        verbose_name = 'Danh mục sự kiện'
+        verbose_name_plural = 'Danh mục sự kiện'
+        ordering = ['priority']
 
     def __str__(self):
         return self.name
-    
+
     def get_absolute_url(self):
         return reverse('event-category-list')
 

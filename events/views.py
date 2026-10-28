@@ -320,6 +320,11 @@ def search_event(request):
 
 @login_required(login_url='login')
 def join_event_direct(request, pk):
+    """
+    Đăng ký tham gia sự kiện và phát vé QR.
+    - Dùng get_or_create để tránh đăng ký trùng.
+    - Tự động redirect đến trang vé QR sau khi đăng ký.
+    """
     event = get_object_or_404(Event, pk=pk)
     member, created = EventMember.objects.get_or_create(
         event=event,
