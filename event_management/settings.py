@@ -12,20 +12,33 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Nạp biến môi trường từ file .env (xem .env.example)
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'gvv(&d^k0f5^xgqa+#ct4sxcg5%&5q&k2d(!uek5m+qj#b^0#2'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        'Thiếu SECRET_KEY. Hãy tạo file .env từ .env.example.'
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
+]
 
 
 # Application definition
@@ -73,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'events.context_processors.notifications_context',
             ],
         },
     },
@@ -87,16 +101,14 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 # Database – MySQL (quanlysukien)
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-import os as _os
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': _os.environ.get('DB_NAME', 'quanlysukien'),
-        'USER': _os.environ.get('DB_USER', 'root'),
-        'PASSWORD': _os.environ.get('DB_PASSWORD', '2111'),
-        'HOST': _os.environ.get('DB_HOST', 'localhost'),
-        'PORT': _os.environ.get('DB_PORT', '3306'),
+        'NAME': os.environ.get('DB_NAME', 'quanlysukien'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
         },
@@ -127,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'vi'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 USE_I18N = True
 
@@ -161,3 +173,13 @@ CKEDITOR_CONFIGS = {
         'toolbar': None,
     },
 }
+
+# ── Email Configuration (Gmail SMTP) ──────────────────────────────────
+# Cấu hình trong file .env: EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (App Password 16 ký tự)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'noreply@event-management.local'

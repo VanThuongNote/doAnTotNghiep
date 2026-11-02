@@ -84,8 +84,13 @@ def profile_page(request):
 
 @login_required(login_url='login')
 def settings_page(request):
+    """Trang cài đặt: đổi mật khẩu + cài đặt thông báo email."""
+    from events.models import NotificationSetting
+    notif_setting, _ = NotificationSetting.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
         action = request.POST.get('action', '')
+
         if action == 'change_password':
             old_password = request.POST.get('old_password', '')
             new_password = request.POST.get('new_password', '')
@@ -103,7 +108,68 @@ def settings_page(request):
                 update_session_auth_hash(request, user)
                 messages.success(request, 'Đổi mật khẩu thành công!')
             return redirect('settings')
-    return render(request, 'settings.html', {})
+
+        elif action == 'save_notification':
+            notif_setting.email_notification = request.POST.get('email_notification') == 'on'
+            notif_setting.event_reminder = request.POST.get('event_reminder') == 'on'
+            notif_setting.points_notification = request.POST.get('points_notification') == 'on'
+            notif_setting.save()
+            messages.success(request, 'Đã lưu cài đặt thông báo!')
+            return redirect('settings')
+
+    context = {
+        'notif_setting': notif_setting,
+    }
+    return render(request, 'settings.html', context)
+
+
+@login_required(login_url='login')
+def all_notifications(request):
+    """Trang xem tất cả thông báo của user."""
+    from events.models import Notification
+    notifications = Notification.objects.filter(user=request.user).select_related('event')[:100]
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+
+@login_required(login_url='login')
+def mark_notification_read(request, pk):
+    """AJAX: Đánh dấu 1 thông báo đã đọc."""
+    from events.models import Notification
+    from django.http import JsonResponse
+    if request.method == 'POST':
+        try:
+            notif = Notification.objects.get(pk=pk, user=request.user)
+            notif.is_read = True
+            notif.save()
+            unread = Notification.objects.filter(user=request.user, is_read=False).count()
+            return JsonResponse({'status': 'ok', 'unread_count': unread})
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error'}, status=404)
+    return JsonResponse({'status': 'error'}, status=405)
+
+
+@login_required(login_url='login')
+def mark_all_notifications_read(request):
+    """AJAX: Đánh dấu tất cả thông báo đã đọc."""
+    from events.models import Notification
+    from django.http import JsonResponse
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'ok', 'unread_count': 0})
+    return JsonResponse({'status': 'error'}, status=405)
+
+
+@login_required(login_url='login')
+def delete_notification(request, pk):
+    """Xóa thông báo."""
+    from events.models import Notification
+    from django.http import JsonResponse
+    if request.method == 'POST':
+        Notification.objects.filter(pk=pk, user=request.user).delete()
+        unread = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({'status': 'ok', 'unread_count': unread})
+    return JsonResponse({'status': 'error'}, status=405)
+
 
 
 def register_page(request):

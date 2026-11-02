@@ -24,3 +24,49 @@
 
 <!-- PAGE SCRIPTS -->
 <script src="{% static 'js/pages/dashboard2.js' %}"></script>
+
+<!-- Notification AJAX handler -->
+<script>
+$(document).ready(function() {
+    function getCsrfToken() {
+        var c = document.cookie.match(/csrftoken=([^;]+)/);
+        return c ? c[1] : '';
+    }
+
+    // Click on a notification item -> mark as read
+    $(document).on('click', '.notif-item', function(e) {
+        var notifId = $(this).data('notif-id');
+        if (notifId) {
+            $.ajax({
+                url: '/notifications/' + notifId + '/read/',
+                method: 'POST',
+                headers: {'X-CSRFToken': getCsrfToken()},
+                success: function(data) {
+                    if (data.unread_count > 0) {
+                        $('#notif-badge').text(data.unread_count);
+                    } else {
+                        $('#notif-badge').remove();
+                    }
+                }
+            });
+        }
+    });
+
+    // Mark all as read
+    $(document).on('click', '#mark-all-read-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $.ajax({
+            url: '/notifications/read-all/',
+            method: 'POST',
+            headers: {'X-CSRFToken': getCsrfToken()},
+            success: function(data) {
+                $('#notif-badge').remove();
+                // Remove unread dots
+                $('.notif-item').find('[title="Chưa đọc"]').remove();
+                $('#mark-all-read-btn').hide();
+            }
+        });
+    });
+});
+</script>
