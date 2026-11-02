@@ -17,7 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import static, staticfiles_urlpatterns
 
-from .views import dashboard, login_page, logut_page, profile_page, settings_page, register_page, forgot_password_page
+from .views import (
+    dashboard, login_page, logut_page, profile_page, settings_page,
+    register_page, forgot_password_page,
+    all_notifications, mark_notification_read, mark_all_notifications_read, delete_notification,
+)
 from . import settings
 
 urlpatterns = [
@@ -31,6 +35,12 @@ urlpatterns = [
     path('settings/', settings_page, name='settings'),
     path('events/', include('events.urls')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
+
+    # Notification URLs
+    path('notifications/', all_notifications, name='all-notifications'),
+    path('notifications/<int:pk>/read/', mark_notification_read, name='mark-notification-read'),
+    path('notifications/read-all/', mark_all_notifications_read, name='mark-all-notifications-read'),
+    path('notifications/<int:pk>/delete/', delete_notification, name='delete-notification'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

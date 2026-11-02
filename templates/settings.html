@@ -195,40 +195,44 @@
             </div>
           </div>
 
-          {% for item in notif_items %}{% endfor %}
-          <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo email</div>
-              <div style="font-size:12px;color:#94a3b8;">Nhận thông báo qua email khi có sự kiện mới</div>
+          <form method="POST" action="{% url 'settings' %}" id="notification-settings-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_notification">
+
+            <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo email</div>
+                <div style="font-size:12px;color:#94a3b8;">Nhận thông báo qua email khi có sự kiện mới</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="email_notification" {% if notif_setting.email_notification %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:#1e293b;">Nhắc nhở sự kiện</div>
-              <div style="font-size:12px;color:#94a3b8;">Nhắc nhở trước khi sự kiện bắt đầu</div>
+            <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid #f1f5f9;">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:#1e293b;">Nhắc nhở sự kiện</div>
+                <div style="font-size:12px;color:#94a3b8;">Nhắc nhở trước khi sự kiện bắt đầu</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="event_reminder" {% if notif_setting.event_reminder %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="d-flex justify-content-between align-items-center py-3">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo điểm thưởng</div>
-              <div style="font-size:12px;color:#94a3b8;">Thông báo khi nhận được điểm thưởng</div>
+            <div class="d-flex justify-content-between align-items-center py-3">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:#1e293b;">Thông báo điểm thưởng</div>
+                <div style="font-size:12px;color:#94a3b8;">Thông báo khi nhận được điểm thưởng</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="points_notification" {% if notif_setting.points_notification %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-primary"><i class="fas fa-save mr-1"></i>Lưu cài đặt</button>
-          </div>
+            <div class="d-flex justify-content-end mt-3">
+              <button type="submit" class="btn btn-primary" id="save-notif-btn"><i class="fas fa-save mr-1"></i>Lưu cài đặt</button>
+            </div>
+          </form>
         </div>
       </div>
 

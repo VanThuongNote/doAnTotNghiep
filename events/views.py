@@ -320,6 +320,11 @@ def search_event(request):
 
 @login_required(login_url='login')
 def join_event_direct(request, pk):
+    """
+    Đăng ký tham gia sự kiện và phát vé QR.
+    - Dùng get_or_create để tránh đăng ký trùng.
+    - Tự động redirect đến trang vé QR sau khi đăng ký.
+    """
     event = get_object_or_404(Event, pk=pk)
     member, created = EventMember.objects.get_or_create(
         event=event,
@@ -333,6 +338,19 @@ def join_event_direct(request, pk):
     )
     if created:
         messages.success(request, f"Đăng ký tham gia thành công sự kiện: {event.name}! Đã phát vé QR cho bạn.")
+
+        # Tạo thông báo cho user đăng ký
+        from .notifications import create_notification, notify_admins_new_registration
+        create_notification(
+            user=request.user,
+            title=f"Đăng ký thành công: {event.name}",
+            message=f"Bạn đã đăng ký tham gia sự kiện \"{event.name}\" thành công. Vé QR đã được phát cho bạn.",
+            notif_type='registration',
+            event=event,
+            link=f'/events/ticket/{member.pk}/',
+        )
+        # Thông báo cho admin
+        notify_admins_new_registration(member)
     else:
         messages.info(request, f"Bạn đã đăng ký tham gia sự kiện này trước đó.")
     return redirect('event-ticket', pk=member.pk)
@@ -404,6 +422,16 @@ def checkin_view(request):
                 target_member.updated_user = request.user
                 target_member.save()
                 messages.success(request, f"✅ Điểm danh thành công! {target_member.user.get_full_name() or target_member.user.username} - Vé #{target_member.ticket_code}")
+
+                # Thông báo cho user đã điểm danh
+                from .notifications import create_notification
+                create_notification(
+                    user=target_member.user,
+                    title=f"Điểm danh thành công: {target_member.event.name}",
+                    message=f"Bạn đã điểm danh sự kiện \"{target_member.event.name}\" thành công. Mã vé: {target_member.ticket_code}.",
+                    notif_type='checkin',
+                    event=target_member.event,
+                )
             return redirect(f"{request.path}?event_id={target_member.event.id}" if target_member else request.path)
         else:
             messages.error(request, "Không tìm thấy mã vé hoặc thành viên hợp lệ!")
