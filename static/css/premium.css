@@ -1,0 +1,506 @@
+/* ============================================================
+   PREMIUM DESIGN SYSTEM – Event Management
+   Tập trung tất cả class dùng chung cho toàn bộ trang.
+   ============================================================ */
+
+/* === PREMIUM CARD (danh sách dạng bảng) === */
+.premium-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    border: none;
+    overflow: hidden;
+}
+
+.premium-card .card-header {
+    border: none;
+    padding: 22px 28px;
+}
+
+.premium-card .card-header .header-icon {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+.premium-card .card-header .header-icon i {
+    color: #fff; font-size: 18px;
+}
+
+.premium-card .card-header h5 {
+    color: #fff; font-weight: 800; margin: 0; font-size: 17px;
+}
+
+.premium-card .card-header .header-subtitle {
+    font-size: 12px; color: rgba(255,255,255,0.75);
+}
+
+/* === FORM CARD (trang tạo/sửa) === */
+.form-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    border: none;
+    overflow: hidden;
+}
+
+.form-header {
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.form-header::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+}
+
+.form-header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+.form-header .header-icon-lg {
+    width: 50px; height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.form-header .header-icon-lg i {
+    color: #fff; font-size: 22px;
+}
+
+.form-header h5 {
+    color: #fff; font-weight: 800; margin: 0; font-size: 18px;
+}
+
+.form-header p {
+    color: rgba(255,255,255,0.8); font-size: 13px; margin: 4px 0 0;
+}
+
+/* === AVATAR === */
+.avatar-sm {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; font-size: 14px;
+    flex-shrink: 0;
+}
+
+.avatar-sm.avatar-indigo  { background: linear-gradient(135deg, #818cf8, #6366f1); }
+.avatar-sm.avatar-blue    { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+.avatar-sm.avatar-red     { background: linear-gradient(135deg, #f87171, #ef4444); }
+.avatar-sm.avatar-green   { background: linear-gradient(135deg, #4ade80, #22c55e); }
+
+/* === ACTION BUTTONS (bảng) === */
+.action-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: none;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    text-decoration: none;
+}
+
+.action-btn-info    { background: #dbeafe; color: #1d4ed8; }
+.action-btn-danger  { background: #fee2e2; color: #dc2626; }
+.action-btn-success { background: #d1fae5; color: #059669; }
+.action-btn-warning { background: #fef3c7; color: #d97706; }
+.action-btn-purple  { background: #ede9fe; color: #6d28d9; }
+
+/* === BADGES (attend / status) === */
+.attend-badge {
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+
+.attend-present  { background: #d1fae5; color: #065f46; }
+.attend-absent   { background: #fee2e2; color: #991b1b; }
+.attend-pending  { background: #fef3c7; color: #92400e; }
+
+.status-badge {
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+
+.status-active    { background: #dbeafe; color: #1e40af; }
+.status-inactive  { background: #f1f5f9; color: #64748b; }
+.status-completed { background: #ede9fe; color: #6d28d9; }
+.status-danger    { background: #fee2e2; color: #991b1b; }
+
+/* === SEARCH BOX === */
+.search-box {
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    padding: 8px 16px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+}
+
+.search-box:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+/* === COIN BADGE === */
+.coin-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-weight: 700; color: #d97706; font-size: 14px;
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+
+.empty-state i {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 14px;
+    opacity: 0.2;
+}
+
+.empty-state .empty-text {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ============================================================
+   EVENT CARD GRID  – Dạng thẻ cho danh sách sự kiện
+   ============================================================ */
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    padding: 24px;
+}
+
+.event-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #f1f5f9;
+}
+
+.event-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    border-color: #e0e7ff;
+}
+
+.event-card .card-img-wrap {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.event-card .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.event-card:hover .card-img-wrap img {
+    transform: scale(1.05);
+}
+
+.event-card .card-img-wrap .no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(255,255,255,0.4);
+    font-size: 48px;
+}
+
+.event-card .card-img-overlay-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.event-card .card-img-overlay-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.event-card .card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.event-card .card-content h6 {
+    font-weight: 800;
+    font-size: 16px;
+    color: #1e293b;
+    margin: 0 0 10px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.event-card .card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.event-card .card-meta i {
+    width: 16px;
+    text-align: center;
+    margin-right: 6px;
+    font-size: 11px;
+}
+
+.event-card .card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+.event-card .card-actions .btn {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+/* === CATEGORY CARD GRID === */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    padding: 24px;
+}
+
+.category-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #f1f5f9;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    border-color: #e0e7ff;
+}
+
+.category-card .cat-img-wrap {
+    height: 140px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    position: relative;
+}
+
+.category-card .cat-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.category-card:hover .cat-img-wrap img {
+    transform: scale(1.05);
+}
+
+.category-card .cat-content {
+    padding: 16px;
+}
+
+.category-card .cat-content h6 {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1e293b;
+    margin: 0 0 6px;
+}
+
+.category-card .cat-content .cat-code {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.category-card .cat-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* === VIEW TOGGLE === */
+.view-toggle {
+    display: inline-flex;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.view-toggle .toggle-btn {
+    padding: 6px 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-toggle .toggle-btn:hover {
+    color: #4f46e5;
+    background: #f1f5f9;
+}
+
+.view-toggle .toggle-btn.active {
+    background: #4f46e5;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+}
+
+/* === CONFIRM CARDS (delete/remove) === */
+.confirm-card {
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: none;
+}
+
+.confirm-header {
+    padding: 32px;
+    text-align: center;
+}
+
+.confirm-header .confirm-icon {
+    width: 70px; height: 70px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.confirm-header .confirm-icon i {
+    font-size: 30px; color: #fff;
+}
+
+.confirm-header h4 {
+    color: #fff; font-weight: 800; margin: 0;
+}
+
+.confirm-header p {
+    color: rgba(255,255,255,0.8); margin: 8px 0 0; font-size: 14px;
+}
+
+/* === PREMIUM TABLE HEADER STYLES === */
+.thead-premium {
+    background: #f8fafc;
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.thead-premium th {
+    font-weight: 700 !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
+/* === TRANSITIONS & ANIMATIONS === */
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .event-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 16px;
+    }
+    .category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        padding: 16px;
+        gap: 16px;
+    }
+    .premium-card .card-header {
+        padding: 16px 20px;
+    }
+    .form-header {
+        padding: 20px 24px;
+    }
+}
