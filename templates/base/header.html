@@ -6,6 +6,8 @@
 <link rel="stylesheet" href="{% static 'plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
 <!-- Theme style -->
 <link rel="stylesheet" href="{% static 'css/adminlte.min.css' %}">
+<!-- Design System -->
+<link rel="stylesheet" href="{% static 'css/premium.css' %}">
 
 <!-- Google Fonts: Inter + Nunito (ho tro tieng Viet) -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -584,5 +586,46 @@
         font-size: 13px;
         font-weight: 600;
         color: #374151;
+    }
+
+    /* === NOTIFICATION BADGE === */
+    .notif-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        min-width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 6px rgba(239,68,68,0.4);
+        animation: notifPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes notifPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* Notification dropdown items */
+    .notif-dropdown-menu .notif-item {
+        transition: background 0.2s !important;
+        border-radius: 0 !important;
+        padding: 14px 18px !important;
+    }
+
+    .notif-dropdown-menu .notif-item:hover {
+        background: #f8fafc !important;
+    }
+
+    .notif-dropdown-menu .dropdown-item {
+        white-space: normal !important;
     }
 </style>

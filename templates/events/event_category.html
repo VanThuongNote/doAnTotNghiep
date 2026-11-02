@@ -1,126 +1,176 @@
 {% extends 'base/base.html' %}
-{% block title %}Danh sách danh mục sự kiện{% endblock title %}
-{% block breadcrumb %}Danh sách danh mục sự kiện{% endblock breadcrumb %}
+{% load static %}
+{% block title %}Danh mục sự kiện | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb_title %}Danh mục sự kiện{% endblock breadcrumb_title %}
+{% block breadcrumb %}Danh mục sự kiện{% endblock breadcrumb %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h5>Danh sách danh mục sự kiện</h5>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="row">
-                                <form class="form-inline ml-3" action="{% url 'search-event-category' %}" method="POST">
-                                    {% csrf_token %}
-                                    <div class="input-group input-group-sm">
-                                      <input class="form-control form-control-navbar" name="search" type="search" placeholder="Tìm kiếm" aria-label="Search">
-                                      <div class="input-group-append">
-                                        <button class="btn btn-navbar" type="submit">
-                                          <i class="fas fa-search"></i>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </form>
-                                <a class="btn" onclick="listView()"><i class="fa fa-bars"></i> Danh sách</a> 
-                                <a class="btn active" onclick="gridView()"><i class="fa fa-th-large"></i> Lưới</a>
-                                {% if user.is_staff or user.is_superuser %}
-                                <a class="btn btn-success" href="{% url 'create-event-category' %}">Tạo danh mục mới</a>
+<div class="premium-card fade-in-up">
+    <!-- Header -->
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="background:linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); gap:12px;">
+        <div class="d-flex align-items-center">
+            <div class="header-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <div>
+                <h5>Danh mục sự kiện</h5>
+                <div class="header-subtitle">{{ event_category|length }} danh mục</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap" style="gap:10px;">
+            <input type="text" id="catSearch" class="search-box" placeholder="🔍 Tìm danh mục..." style="width:200px;">
+            <div class="view-toggle">
+                <button class="toggle-btn active" onclick="showCatGrid()" id="catGridBtn"><i class="fas fa-th-large"></i> Lưới</button>
+                <button class="toggle-btn" onclick="showCatTable()" id="catTableBtn"><i class="fas fa-bars"></i> Bảng</button>
+            </div>
+            {% if user.is_staff or user.is_superuser %}
+            <a class="btn btn-light btn-sm font-weight-bold" href="{% url 'create-event-category' %}" style="border-radius:10px;">
+                <i class="fas fa-plus mr-1"></i>Tạo danh mục
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===== CARD GRID VIEW ===== -->
+    <div id="catGridView" class="category-grid">
+        {% for category in event_category %}
+        <div class="category-card fade-in-up" data-search="{{ category.name|lower }} {{ category.code|lower }}">
+            <div class="cat-img-wrap">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+                {% else %}
+                <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.4);font-size:40px;">
+                    <i class="fas fa-folder"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="cat-content">
+                <h6>{{ category.name }}</h6>
+                <span class="cat-code">
+                    <i class="fas fa-tag mr-1"></i>{{ category.code }}
+                </span>
+            </div>
+            <div class="cat-footer">
+                <span class="status-badge {% if category.status == 'active' %}status-active{% elif category.status == 'completed' %}status-completed{% else %}status-inactive{% endif %}">
+                    {% if category.status == 'active' %}<i class="fas fa-check-circle" style="font-size:10px;"></i>{% endif %}
+                    {{ category.get_status_display|default:category.status|title }}
+                </span>
+                {% if user.is_staff or user.is_superuser %}
+                <div style="display:flex; gap:4px;">
+                    <a href="{% url 'edit-event-category' category.pk %}" class="action-btn action-btn-info" title="Chỉnh sửa">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'delete-event-category' category.pk %}" class="action-btn action-btn-danger" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+                {% else %}
+                <span class="attend-badge attend-pending"><i class="fas fa-eye" style="font-size:10px;"></i>Chỉ xem</span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1;">
+            <div class="empty-state">
+                <i class="fas fa-folder-plus" style="color:#8b5cf6;"></i>
+                <div class="empty-text">Chưa có danh mục nào</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ===== TABLE VIEW ===== -->
+    <div id="catTableView" style="display:none;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="catTable">
+                    <thead class="thead-premium">
+                        <tr>
+                            <th style="padding-left:22px; width:50px;">STT</th>
+                            <th>Tên danh mục</th>
+                            <th>Mã</th>
+                            <th>Hình ảnh</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center" style="width:120px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in event_category %}
+                        <tr>
+                            <td style="padding-left:22px; font-weight:700; color:#94a3b8;">{{ forloop.counter }}</td>
+                            <td style="font-weight:700; color:#1e293b;">{{ category.name }}</td>
+                            <td>
+                                <span style="background:#f5f3ff; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ category.code }}</span>
+                            </td>
+                            <td>
+                                {% if category.image %}
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}" style="height:44px; width:60px; border-radius:8px; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+                                {% else %}
+                                <span class="attend-badge attend-pending"><i class="fas fa-image" style="font-size:10px;"></i> Chưa có</span>
                                 {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                      <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
-                        <thead>
-                            <tr role="row">
-                                <th>STT</th>
-                                <th>Tên danh mục</th>
-                                <th>Mã danh mục</th>
-                                <th class='ctg_image'>Hình ảnh</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for category in event_category %}
-                              <tr>
-                                  <td>{{ forloop.counter }}</td>
-                                  <td>{{ category.name }}</td>
-                                  <td>{{ category.code }}</td>
-                                  <td class="ctg_image">
-                                      {% if category.image %}
-                                      <img class="ctg_image" src="{{ category.image.url }}" alt="Image" height="50px" style="border-radius:8px; object-fit:cover;">
-                                      {% else %}
-                                      <span class="badge badge-light" style="padding:6px 10px;"><i class="fas fa-folder text-primary mr-1"></i>Chưa có ảnh</span>
-                                      {% endif %}
-                                  </td>
-                                  <td>{{ category.status }}</td>
-                                  <td>
-                                      {% if user.is_staff or user.is_superuser %}
-                                      <a class="btn btn-info" href="{% url 'edit-event-category' category.pk %}">
-                                          <i class="fa fa-edit"></i>
-                                      </a>
-                                      <a class="btn btn-danger" href="{% url 'delete-event-category' category.pk %}">
-                                          <i class="fa fa-trash"></i>
-                                      </a>
-                                      {% else %}
-                                      <span class="badge badge-light">Chỉ xem</span>
-                                      {% endif %}
-                                  </td>
-                              </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge {% if category.status == 'active' %}status-active{% elif category.status == 'completed' %}status-completed{% else %}status-inactive{% endif %}">
+                                    {{ category.get_status_display|default:category.status|title }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if user.is_staff or user.is_superuser %}
+                                <a href="{% url 'edit-event-category' category.pk %}" class="action-btn action-btn-info mr-1" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'delete-event-category' category.pk %}" class="action-btn action-btn-danger" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% else %}
+                                <span class="attend-badge attend-pending">Chỉ xem</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-plus" style="color:#8b5cf6;"></i>
+                                    <div class="empty-text">Chưa có danh mục nào</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
 {% endblock content %}
 
 {% block extrascript %}
 <script>
-    // Get the elements with class="column"
-    var elements = document.getElementsByClassName("table");
-    var myobj = document.getElementsByClassName("ctg_image");
-    // Declare a loop variable
-    var i;
+function showCatGrid() {
+    document.getElementById('catGridView').style.display = '';
+    document.getElementById('catTableView').style.display = 'none';
+    document.getElementById('catGridBtn').classList.add('active');
+    document.getElementById('catTableBtn').classList.remove('active');
+    localStorage.setItem('catView', 'grid');
+}
+function showCatTable() {
+    document.getElementById('catGridView').style.display = 'none';
+    document.getElementById('catTableView').style.display = '';
+    document.getElementById('catTableBtn').classList.add('active');
+    document.getElementById('catGridBtn').classList.remove('active');
+    localStorage.setItem('catView', 'table');
+}
+if (localStorage.getItem('catView') === 'table') { showCatTable(); }
 
-    // List View
-    function listView() {
-        for (i = 0; i < elements.length; i++) {
-
-            var appBanners = document.getElementsByClassName('ctg_image');
-
-            for (var i = 0; i < appBanners.length; i ++) {
-                appBanners[i].style.display = 'none';
-            }
-        }
-    }
-    
-    // Grid View
-    function gridView() {
-      for (i = 0; i < elements.length; i++) {
-        var appBanners = document.getElementsByClassName('ctg_image');
-
-        for (var i = 0; i < appBanners.length; i ++) {
-            appBanners[i].style.display = 'block';
-        }
-      }
-    }
-    
-    /* Optional: Add active class to the current button (highlight it) */
-    var container = document.getElementById("btnContainer");
-    var btns = container.getElementsByClassName("btn");
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].addEventListener("click", function() {
-        var current = document.getElementsByClassName("active");
-        current[0].className = current[0].className.replace(" active", "");
-        this.className += " active";
-      });
-    }
-    </script>
+document.getElementById('catSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.category-card').forEach(c => {
+        c.style.display = (c.dataset.search || '').includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('#catTable tbody tr').forEach(r => {
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
 {% endblock extrascript %}
