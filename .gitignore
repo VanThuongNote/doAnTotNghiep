@@ -134,10 +134,7 @@ dmypy.json
 # Media files
 media/
 
-# Do an - khong push tai lieu len git
-DeCuong_NguyenVanThuong.docx
-soDo.docx
-*.docx
+
 
 # IDE settings
 .idea/

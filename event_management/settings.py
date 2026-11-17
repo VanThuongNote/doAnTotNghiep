@@ -101,19 +101,27 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 # Database – MySQL (quanlysukien)
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'quanlysukien'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+if os.environ.get('DB_ENGINE') == 'sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DB_NAME', 'quanlysukien'),
+            'USER': os.environ.get('DB_USER', 'root'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -173,6 +181,8 @@ CKEDITOR_CONFIGS = {
         'toolbar': None,
     },
 }
+SILENCED_SYSTEM_CHECKS = ['ckeditor.W001']
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # ── Email Configuration (Gmail SMTP) ──────────────────────────────────
 # Cấu hình trong file .env: EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (App Password 16 ký tự)
