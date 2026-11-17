@@ -1,0 +1,243 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Thông báo{% endblock title %}
+{% block breadcrumb_title %}Thông báo{% endblock breadcrumb_title %}
+{% block breadcrumb %}Thông báo{% endblock breadcrumb %}
+
+{% block extrahead %}
+<style>
+.notif-page-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(79,70,229,0.08);
+    overflow: hidden;
+}
+.notif-page-header {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    padding: 24px 28px;
+    color: #fff;
+}
+.notif-page-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 18px 28px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+}
+.notif-page-item:hover {
+    background: #f8fafc;
+    text-decoration: none;
+    color: inherit;
+}
+.notif-page-item.unread {
+    background: rgba(79,70,229,0.03);
+    border-left: 4px solid #4f46e5;
+}
+.notif-page-item.read {
+    opacity: 0.7;
+}
+.notif-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+.notif-actions {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+}
+.notif-page-item:hover .notif-actions {
+    display: flex;
+    gap: 8px;
+}
+.notif-action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+.notif-action-btn.mark-read {
+    background: #ede9fe;
+    color: #4f46e5;
+}
+.notif-action-btn.mark-read:hover {
+    background: #4f46e5;
+    color: #fff;
+}
+.notif-action-btn.delete {
+    background: #fee2e2;
+    color: #ef4444;
+}
+.notif-action-btn.delete:hover {
+    background: #ef4444;
+    color: #fff;
+}
+.notif-empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notif-page-card">
+  <div class="notif-page-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 style="margin:0;font-weight:800;"><i class="fas fa-bell mr-2"></i>Tất cả thông báo</h5>
+        <div style="font-size:13px;opacity:0.8;margin-top:4px;">{{ notifications|length }} thông báo</div>
+      </div>
+      {% if unread_count > 0 %}
+      <button class="btn btn-sm" id="page-mark-all-read" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:8px;font-size:12px;font-weight:600;">
+        <i class="fas fa-check-double mr-1"></i>Đánh dấu tất cả đã đọc
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if notifications %}
+    {% for notif in notifications %}
+    <div class="notif-page-item {% if notif.is_read %}read{% else %}unread{% endif %}" data-notif-id="{{ notif.id }}">
+      <div class="notif-icon-box"
+        {% if notif.notif_type == 'registration' %}style="background:#ede9fe;"{% elif notif.notif_type == 'reminder' %}style="background:#fef3c7;"{% elif notif.notif_type == 'checkin' %}style="background:#d1fae5;"{% elif notif.notif_type == 'event_new' %}style="background:#fce7f3;"{% else %}style="background:#e0f2fe;"{% endif %}>
+        {% if notif.notif_type == 'registration' %}
+          <i class="fas fa-user-plus" style="color:#4f46e5;font-size:16px;"></i>
+        {% elif notif.notif_type == 'reminder' %}
+          <i class="fas fa-clock" style="color:#f59e0b;font-size:16px;"></i>
+        {% elif notif.notif_type == 'checkin' %}
+          <i class="fas fa-check-circle" style="color:#10b981;font-size:16px;"></i>
+        {% elif notif.notif_type == 'event_new' %}
+          <i class="fas fa-calendar-plus" style="color:#ec4899;font-size:16px;"></i>
+        {% else %}
+          <i class="fas fa-bell" style="color:#0ea5e9;font-size:16px;"></i>
+        {% endif %}
+      </div>
+      <div style="flex:1;min-width:0;padding-right:80px;">
+        <div style="font-size:14px;font-weight:600;color:#1e293b;margin-bottom:3px;">
+          {{ notif.title }}
+          {% if not notif.is_read %}
+          <span style="display:inline-block;width:8px;height:8px;background:#4f46e5;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
+          {% endif %}
+        </div>
+        <div style="font-size:13px;color:#64748b;line-height:1.5;">{{ notif.message }}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;">
+          <i class="far fa-clock mr-1"></i>{{ notif.created_at|timesince }} trước
+          {% if notif.event %}
+          <span class="ml-3"><i class="fas fa-calendar-alt mr-1"></i>{{ notif.event.name }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="notif-actions">
+        {% if not notif.is_read %}
+        <button class="notif-action-btn mark-read" title="Đánh dấu đã đọc" onclick="markRead({{ notif.id }}, this)">
+          <i class="fas fa-check"></i>
+        </button>
+        {% endif %}
+        <button class="notif-action-btn delete" title="Xóa" onclick="deleteNotif({{ notif.id }}, this)">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="notif-empty">
+      <i class="far fa-bell-slash" style="font-size:48px;color:#cbd5e1;display:block;margin-bottom:16px;"></i>
+      <div style="font-size:16px;font-weight:600;color:#94a3b8;">Chưa có thông báo nào</div>
+      <div style="font-size:13px;color:#cbd5e1;margin-top:6px;">Thông báo sẽ xuất hiện khi có hoạt động mới</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block extrascript %}
+<script>
+function getCookie(name) {
+    let v = null;
+    document.cookie.split(';').forEach(function(c) {
+        c = c.trim();
+        if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+    });
+    return v;
+}
+
+function markRead(id, btn) {
+    fetch('/notifications/' + id + '/read/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json'}
+    }).then(r => r.json()).then(data => {
+        if (data.status === 'ok') {
+            var item = btn.closest('.notif-page-item');
+            item.classList.remove('unread');
+            item.classList.add('read');
+            btn.remove();
+            // Update navbar badge
+            var badge = document.getElementById('notif-badge');
+            if (badge) {
+                if (data.unread_count > 0) badge.textContent = data.unread_count;
+                else badge.remove();
+            }
+        }
+    });
+}
+
+function deleteNotif(id, btn) {
+    if (!confirm('Xóa thông báo này?')) return;
+    fetch('/notifications/' + id + '/delete/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json'}
+    }).then(r => r.json()).then(data => {
+        if (data.status === 'ok') {
+            var item = btn.closest('.notif-page-item');
+            item.style.transition = 'all 0.3s';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(40px)';
+            setTimeout(function() { item.remove(); }, 300);
+            var badge = document.getElementById('notif-badge');
+            if (badge) {
+                if (data.unread_count > 0) badge.textContent = data.unread_count;
+                else badge.remove();
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var markAllBtn = document.getElementById('page-mark-all-read');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function() {
+            fetch('/notifications/read-all/', {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json'}
+            }).then(r => r.json()).then(data => {
+                if (data.status === 'ok') {
+                    document.querySelectorAll('.notif-page-item.unread').forEach(function(el) {
+                        el.classList.remove('unread');
+                        el.classList.add('read');
+                    });
+                    document.querySelectorAll('.notif-action-btn.mark-read').forEach(function(b) { b.remove(); });
+                    var badge = document.getElementById('notif-badge');
+                    if (badge) badge.remove();
+                    markAllBtn.remove();
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

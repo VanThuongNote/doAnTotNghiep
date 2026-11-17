@@ -3,16 +3,25 @@ from django.contrib.auth.models import User
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control',
-        'type': 'text',
-        'placeholder': 'Tên đăng nhập'
-    }))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'form-control',
-        'type': 'password',
-        'placeholder': 'Mật khẩu'
-    }))
+    """Form đăng nhập - xác thực tên đăng nhập và mật khẩu."""
+
+    username = forms.CharField(
+        label='Tên đăng nhập',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'text',
+            'placeholder': 'Tên đăng nhập',
+            'autofocus': True,
+        })
+    )
+    password = forms.CharField(
+        label='Mật khẩu',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'type': 'password',
+            'placeholder': 'Mật khẩu',
+        })
+    )
 
 
 class RegisterForm(forms.Form):
@@ -71,10 +80,22 @@ class ResetPasswordForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email đã đăng ký'})
     )
+    otp_code = forms.CharField(
+        max_length=6,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nhập mã OTP 6 chữ số',
+            'maxlength': '6',
+            'style': 'letter-spacing: 4px; font-weight: 800; text-align: center;'
+        })
+    )
     new_password = forms.CharField(
+        required=False,
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Mật khẩu mới (tối thiểu 6 ký tự)'})
     )
     confirm_password = forms.CharField(
+        required=False,
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Xác nhận mật khẩu mới'})
     )
 
@@ -82,8 +103,9 @@ class ResetPasswordForm(forms.Form):
         cleaned_data = super().clean()
         pw = cleaned_data.get('new_password')
         cpw = cleaned_data.get('confirm_password')
-        if pw and cpw and pw != cpw:
-            self.add_error('confirm_password', 'Mật khẩu xác nhận không khớp!')
-        if pw and len(pw) < 6:
-            self.add_error('new_password', 'Mật khẩu phải có ít nhất 6 ký tự!')
+        if pw or cpw:
+            if pw != cpw:
+                self.add_error('confirm_password', 'Mật khẩu xác nhận không khớp!')
+            if pw and len(pw) < 6:
+                self.add_error('new_password', 'Mật khẩu phải có ít nhất 6 ký tự!')
         return cleaned_data
