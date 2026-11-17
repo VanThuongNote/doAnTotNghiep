@@ -80,17 +80,36 @@
 <div class="container-fluid py-3">
 
     <!-- Action Bar -->
-    <div class="d-flex justify-content-between align-items-center max-w-850 mx-auto mb-4 no-print" style="max-width:850px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap max-w-850 mx-auto mb-4 no-print" style="max-width:850px; gap:10px;">
         <a href="{% url 'my-tickets' %}" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;">
             <i class="fas fa-arrow-left mr-1"></i>Vé của tôi
         </a>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap" style="gap:8px;">
+            {% if google_calendar_url %}
+            <a href="{{ google_calendar_url }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm" style="border-radius:10px;">
+                <i class="fab fa-google mr-1"></i>Google Calendar
+            </a>
+            {% endif %}
+            <a href="{% url 'export-event-ics' event.pk %}" class="btn btn-outline-info btn-sm" style="border-radius:10px;">
+                <i class="fas fa-calendar-plus mr-1"></i>Tải lịch .ICS
+            </a>
             <button onclick="window.print()" class="btn btn-primary btn-sm" style="border-radius:10px;">
                 <i class="fas fa-print mr-1"></i>In vé / Tải PDF
             </button>
+            {% if member.is_checked_in %}
+            <a href="{% url 'event-certificate' member.pk %}" class="btn btn-warning btn-sm font-weight-bold text-white" style="border-radius:10px;">
+                <i class="fas fa-award mr-1"></i>Giấy chứng nhận
+            </a>
+            {% else %}
             <a href="{% url 'event-checkin' %}?ticket={{ ticket_code }}" class="btn btn-success btn-sm" style="border-radius:10px;">
                 <i class="fas fa-qrcode mr-1"></i>Trang điểm danh
             </a>
+            {% if member.attend_status == 'waiting' %}
+            <a href="{% url 'cancel-event-registration' member.pk %}" onclick="return confirm('Bạn có chắc chắn muốn hủy đăng ký sự kiện này?');" class="btn btn-outline-danger btn-sm" style="border-radius:10px;">
+                <i class="fas fa-times mr-1"></i>Hủy vé
+            </a>
+            {% endif %}
+            {% endif %}
         </div>
     </div>
 
@@ -164,13 +183,13 @@
                     <div class="qr-container">
                         <div style="font-size:12px; font-weight:700; color:#475569; margin-bottom:12px;">MÃ QR XÁC THỰC VÉ</div>
                         
-                        <!-- QR Code Image generated via API & JS -->
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ request.scheme }}://{{ request.get_host }}{% url 'event-checkin' %}?ticket={{ ticket_code }}" 
+                        <!-- QR Code Image generated offline at backend -->
+                        <img src="{{ qr_code_base64 }}" 
                              alt="Vé QR {{ ticket_code }}" 
                              style="width:180px; height:180px; border-radius:12px; border:4px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1);" />
                         
                         <div style="font-size:13px; font-weight:800; color:#1e293b; margin-top:12px; font-family:monospace; letter-spacing:1px;">
-                            {{ ticket_code }}
+                            {{ secure_ticket_code|default:ticket_code }}
                         </div>
                         <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
                             Vui lòng đưa mã QR này cho ban tổ chức tại quầy check-in

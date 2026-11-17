@@ -28,6 +28,7 @@
                         <th>Người dùng</th>
                         <th>Sự kiện</th>
                         <th>Trạng thái</th>
+                        <th class="text-center">Giấy chứng nhận</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +38,7 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm mr-2">{{ item.user|slice:":1"|upper }}</div>
-                                <span style="font-weight:600;color:#1e293b;">{{ item.user }}</span>
+                                <span style="font-weight:600;color:#1e293b;">{{ item.user.get_full_name|default:item.user.username }}</span>
                             </div>
                         </td>
                         <td style="color:#374151;">{{ item.event }}</td>
@@ -46,10 +47,19 @@
                                 <i class="fas fa-check-circle mr-1" style="font-size:10px;"></i>{{ item.get_attend_status_display|default:"Đã hoàn thành" }}
                             </span>
                         </td>
+                        <td class="text-center">
+                            {% if item.is_checked_in %}
+                            <a href="{% url 'event-certificate' item.id %}" class="btn btn-warning btn-sm font-weight-bold text-white" style="border-radius:8px;">
+                                <i class="fas fa-award mr-1"></i>Xem Chứng Nhận
+                            </a>
+                            {% else %}
+                            <span class="text-muted" style="font-size:12px;">Chưa điểm danh</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align:center;padding:60px;color:#94a3b8;">
+                        <td colspan="5" style="text-align:center;padding:60px;color:#94a3b8;">
                             <i class="fas fa-users-slash" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.25;"></i>
                             <div style="font-size:15px;font-weight:600;">Chưa có thành viên nào hoàn thành</div>
                         </td>

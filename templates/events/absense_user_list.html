@@ -15,9 +15,19 @@
                 <div style="font-size:12px;color:rgba(255,255,255,0.75);">{{ absenseuser|length }} người vắng mặt</div>
             </div>
         </div>
-        <a href="{% url 'event-create' %}" class="btn btn-light btn-sm font-weight-bold" style="border-radius:10px;">
-            <i class="fas fa-plus mr-1"></i>Tạo sự kiện mới
-        </a>
+        <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+            <form method="GET" style="margin:0;">
+                <select name="event_id" class="form-control form-control-sm" onchange="this.form.submit()" style="min-width:210px; border-radius:8px;">
+                    <option value="">-- Lọc theo sự kiện --</option>
+                    {% for ev in events %}
+                    <option value="{{ ev.id }}" {% if selected_event_id == ev.id %}selected{% endif %}>{{ ev.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <a href="{% url 'join-event-list' %}" class="btn btn-light btn-sm font-weight-bold" style="border-radius:10px;">
+                <i class="fas fa-clipboard-list mr-1"></i>DS Đăng ký
+            </a>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -28,6 +38,9 @@
                         <th>Người dùng</th>
                         <th>Sự kiện</th>
                         <th>Trạng thái</th>
+                        {% if user.is_staff or user.is_superuser %}
+                        <th class="text-center">Thao tác quản lý</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -37,19 +50,41 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm mr-2">{{ item.user|slice:":1"|upper }}</div>
-                                <span style="font-weight:600;color:#1e293b;">{{ item.user }}</span>
+                                <span style="font-weight:600;color:#1e293b;">{{ item.user.get_full_name|default:item.user.username }} (@{{ item.user.username }})</span>
                             </div>
                         </td>
                         <td style="color:#374151;">{{ item.event }}</td>
                         <td>
                             <span style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">
-                                <i class="fas fa-times-circle mr-1" style="font-size:10px;"></i>{{ item.status }}
+                                <i class="fas fa-times-circle mr-1" style="font-size:10px;"></i>Vắng mặt
                             </span>
                         </td>
+                        {% if user.is_staff or user.is_superuser %}
+                        <td class="text-center">
+                            <form method="POST" action="{% url 'event-checkin' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="checkin">
+                                <input type="hidden" name="member_id" value="{{ item.id }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-success btn-sm font-weight-bold" style="border-radius:8px; padding:4px 10px;" title="Điểm danh bù">
+                                    <i class="fas fa-check mr-1"></i>Điểm danh bù
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'event-checkin' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="cancel_checkin">
+                                <input type="hidden" name="member_id" value="{{ item.id }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius:8px; padding:4px 10px;" title="Chuyển về Chờ điểm danh">
+                                    <i class="fas fa-undo mr-1"></i>Chuyển về Chờ
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align:center;padding:60px;color:#94a3b8;">
+                        <td colspan="5" style="text-align:center;padding:60px;color:#94a3b8;">
                             <i class="fas fa-user-check" style="font-size:48px;display:block;margin-bottom:14px;opacity:0.25;color:#10b981;"></i>
                             <div style="font-size:15px;font-weight:600;color:#10b981;">Tất cả thành viên đều có mặt!</div>
                         </td>
