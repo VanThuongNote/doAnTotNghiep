@@ -4,29 +4,44 @@
 {% block breadcrumb %}Tạo sự kiện mới{% endblock breadcrumb %}
 
 {% block extrahead %}
-    <!-- Mapbox Configuration -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    {% load mapbox_location_field_tags %}
-    {% location_field_includes %}
-    {% include_jquery %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .form-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .form-control, select.form-control, textarea.form-control {
             border-radius: 10px !important;
             border: 1.5px solid #e2e8f0 !important;
-            padding: 10px 14px !important;
+            padding: 8px 14px !important;
             font-size: 14px;
             transition: all 0.2s;
+        }
+        select.form-control {
+            height: auto !important;
+            min-height: 42px !important;
+            line-height: 1.45 !important;
         }
         .form-control:focus {
             border-color: #10b981 !important;
             box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
         }
         label { font-weight: 600; color: #374151; font-size: 13px; }
+        /* Ẩn khung Mapbox mặc định (vì dùng OpenStreetMap Leaflet miễn phí) */
+        .location-field-map, .location-field-geocoder { display: none !important; }
+        #osmPickerMap {
+            height: 290px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1.5px solid #cbd5e1;
+            margin-top: 10px;
+            z-index: 1;
+        }
+        .preset-loc-btn {
+            font-size: 11.5px;
+            border-radius: 20px;
+            padding: 3px 10px;
+            margin-right: 4px;
+            margin-top: 6px;
+        }
     </style>
 {% endblock extrahead %}
 
@@ -46,11 +61,9 @@
                 </div>
             </div>
             <div class="card-body p-4">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="createEventForm">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    {{ form_1|crispy }}
-                    {{ form_2|crispy }}
                     <div class="d-flex justify-content-between mt-4">
                         <a href="{% url 'event-list' %}" class="btn btn-outline-secondary" style="border-radius:10px;padding:10px 24px;">
                             <i class="fas fa-arrow-left mr-2"></i>Danh sách sự kiện
@@ -67,7 +80,73 @@
 </div>
 
 <script>
-    if (document.getElementById('location-field-map')) {
+    document.addEventListener('DOMContentLoaded', function() {
+        // CKEditor ẩn textarea gốc nên nếu còn attribute required trình duyệt sẽ chặn submit âm thầm
+        var descEl = document.getElementById('id_event-description');
+        if (descEl) {
+            descEl.removeAttribute('required');
+        }
+        // Đảm bảo trường vị trí bản đồ có thể chỉnh sửa và gắn Bản đồ OpenStreetMap (Leaflet) miễn phí
+        var mapInput = document.getElementById('map');
+        if (mapInput) {
+            mapInput.removeAttribute('readonly');
+            mapInput.classList.add('form-control');
+            if (!mapInput.value) {
+                mapInput.value = '108.220832,16.047079';
+            }
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML =
+                '<div class="mt-1 mb-1">' +
+                '<span class="text-muted" style="font-size:12px;"><i class="fas fa-map-pin text-danger mr-1"></i>Chọn nhanh địa điểm hoặc click trực tiếp lên bản đồ OpenStreetMap:</span><br>' +
+                '<button type="button" class="btn btn-outline-primary preset-loc-btn" data-lng="108.220832" data-lat="16.047079">ĐH Kiến Trúc ĐN (566 Núi Thành)</button>' +
+                '<button type="button" class="btn btn-outline-info preset-loc-btn" data-lng="108.222500" data-lat="16.077200">Công viên Phần mềm ĐN</button>' +
+                '<button type="button" class="btn btn-outline-success preset-loc-btn" data-lng="108.149900" data-lat="16.073800">ĐH Bách Khoa ĐN</button>' +
+                '</div>' +
+                '<div id="osmPickerMap"></div>';
+            mapInput.parentNode.appendChild(wrapper);
+
+            if (typeof L !== 'undefined') {
+                var osmMap = L.map('osmPickerMap').setView([16.047079, 108.220832], 14);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    subdomains: 'abcd',
+                    attribution: '&copy; OpenStreetMap &copy; CARTO'
+                }).addTo(osmMap);
+                var marker = L.marker([16.047079, 108.220832], { draggable: true }).addTo(osmMap);
+                function setCoords(lat, lng) {
+                    var fixedLng = parseFloat(lng).toFixed(6);
+                    var fixedLat = parseFloat(lat).toFixed(6);
+                    mapInput.value = fixedLng + ',' + fixedLat;
+                    marker.setLatLng([fixedLat, fixedLng]);
+                    osmMap.panTo([fixedLat, fixedLng]);
+                }
+                osmMap.on('click', function(e) {
+                    setCoords(e.latlng.lat, e.latlng.lng);
+                });
+                marker.on('dragend', function(e) {
+                    var pos = e.target.getLatLng();
+                    setCoords(pos.lat, pos.lng);
+                });
+                wrapper.querySelectorAll('.preset-loc-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        setCoords(btn.getAttribute('data-lat'), btn.getAttribute('data-lng'));
+                    });
+                });
+            }
+        }
+        var formEl = document.getElementById('createEventForm');
+        if (formEl) {
+            formEl.addEventListener('submit', function() {
+                if (typeof CKEDITOR !== 'undefined') {
+                    for (var instance in CKEDITOR.instances) {
+                        CKEDITOR.instances[instance].updateElement();
+                    }
+                }
+            });
+        }
+    });
+
+    if (document.getElementById('location-field-map') && '{{ mapbox_key }}') {
         mapboxgl.accessToken = '{{ mapbox_key }}';
         var map = new mapboxgl.Map({
             container: 'location-field-map',

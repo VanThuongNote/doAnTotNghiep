@@ -45,12 +45,13 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            {% if user.is_staff or user.is_superuser %}
-                            <a href="{% url 'remove-event-user-wish' wish.pk %}" class="action-btn" style="background:#fee2e2;color:#dc2626;" title="Xóa yêu thích">
+                            <a href="{% url 'event-detail' wish.event.pk %}" class="action-btn mr-1" style="background:#e0e7ff;color:#4f46e5;" title="Xem sự kiện">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if user.is_staff or user.is_superuser or wish.user == user %}
+                            <a href="{% url 'remove-event-user-wish' wish.pk %}" class="action-btn" style="background:#fee2e2;color:#dc2626;" title="Xóa khỏi yêu thích">
                                 <i class="fas fa-heart-broken"></i>
                             </a>
-                            {% else %}
-                            <span class="badge badge-light">Đã lưu</span>
                             {% endif %}
                         </td>
                     </tr>

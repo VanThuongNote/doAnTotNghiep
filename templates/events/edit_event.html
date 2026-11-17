@@ -4,27 +4,36 @@
 {% block breadcrumb %}Chỉnh sửa sự kiện{% endblock breadcrumb %}
 
 {% block extrahead %}
-    <!-- Mapbox Configuration -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
-
-    {% load mapbox_location_field_tags %}
-    {% location_field_includes %}
-    {% include_jquery %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .form-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
         .form-control, select.form-control, textarea.form-control {
             border-radius: 10px !important;
             border: 1.5px solid #e2e8f0 !important;
-            padding: 10px 14px !important;
+            padding: 8px 14px !important;
             font-size: 14px;
             transition: all 0.2s;
+        }
+        select.form-control {
+            height: auto !important;
+            min-height: 42px !important;
+            line-height: 1.45 !important;
         }
         .form-control:focus {
             border-color: #3b82f6 !important;
             box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important;
         }
         label { font-weight: 600; color: #374151; font-size: 13px; }
+        .location-field-map, .location-field-geocoder { display: none !important; }
+        #osmEditPickerMap {
+            height: 280px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1.5px solid #cbd5e1;
+            margin-top: 10px;
+            z-index: 1;
+        }
     </style>
 {% endblock extrahead %}
 
@@ -46,7 +55,26 @@
             <div class="card-body p-4">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-info-circle mr-1"></i>1. Thông tin chung sự kiện</h6>
                     {{ form|crispy }}
+
+                    {% if image_form %}
+                    <hr class="my-4">
+                    <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-image mr-1"></i>2. Ảnh Banner sự kiện</h6>
+                    {% if object.eventimage and object.eventimage.image %}
+                    <div class="mb-2">
+                        <img src="{{ object.eventimage.image.url }}" alt="Banner hiện tại" style="max-height:140px; border-radius:10px; border:1px solid #cbd5e1;">
+                    </div>
+                    {% endif %}
+                    {{ image_form|crispy }}
+                    {% endif %}
+
+                    {% if agenda_form %}
+                    <hr class="my-4">
+                    <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-clock mr-1"></i>3. Lịch trình & Diễn giả</h6>
+                    {{ agenda_form|crispy }}
+                    {% endif %}
+
                     <div class="d-flex justify-content-between mt-4">
                         <a href="{% url 'event-list' %}" class="btn btn-outline-secondary" style="border-radius:10px;padding:10px 24px;">
                             <i class="fas fa-arrow-left mr-2"></i>Danh sách sự kiện
@@ -63,12 +91,34 @@
 </div>
 
 <script>
-    if (document.getElementById('location-field-map')) {
-        mapboxgl.accessToken = '{{ mapbox_key }}';
-        var map = new mapboxgl.Map({
-            container: 'location-field-map',
-            style: 'mapbox://styles/mapbox/streets-v11'
-        });
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        var descEl = document.getElementById('id_description');
+        if (descEl) descEl.removeAttribute('required');
+        var mapInput = document.getElementById('map');
+        if (mapInput && typeof L !== 'undefined') {
+            mapInput.removeAttribute('readonly');
+            mapInput.classList.add('form-control');
+            var mapDiv = document.createElement('div');
+            mapDiv.id = 'osmEditPickerMap';
+            mapInput.parentNode.appendChild(mapDiv);
+            var lat = parseFloat("{{ object.latitude|default:'16.047079' }}".replace(',', '.')) || 16.047079;
+            var lng = parseFloat("{{ object.longitude|default:'108.220832' }}".replace(',', '.')) || 108.220832;
+            var osmMap = L.map('osmEditPickerMap').setView([lat, lng], 14);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap &copy; CARTO'
+            }).addTo(osmMap);
+            var marker = L.marker([lat, lng], { draggable: true }).addTo(osmMap);
+            osmMap.on('click', function(e) {
+                mapInput.value = e.latlng.lng.toFixed(6) + ',' + e.latlng.lat.toFixed(6);
+                marker.setLatLng(e.latlng);
+            });
+            marker.on('dragend', function(e) {
+                var pos = e.target.getLatLng();
+                mapInput.value = pos.lng.toFixed(6) + ',' + pos.lat.toFixed(6);
+            });
+        }
+    });
 </script>
 {% endblock content %}

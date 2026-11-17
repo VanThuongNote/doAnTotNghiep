@@ -25,6 +25,9 @@
                 <button class="toggle-btn active" onclick="showGrid()" id="gridBtn"><i class="fas fa-th-large"></i> Lưới</button>
                 <button class="toggle-btn" onclick="showTable()" id="tableBtn"><i class="fas fa-bars"></i> Bảng</button>
             </div>
+            <a class="btn btn-info btn-sm font-weight-bold text-white" href="{% url 'event-calendar' %}" style="border-radius:10px;">
+                <i class="fas fa-calendar-alt mr-1"></i>Lịch & Bản đồ
+            </a>
             {% if user.is_staff or user.is_superuser %}
             <a class="btn btn-light btn-sm font-weight-bold" href="{% url 'event-create' %}" style="border-radius:10px;">
                 <i class="fas fa-plus mr-1"></i>Tạo sự kiện
@@ -60,14 +63,38 @@
                 <div class="card-meta">
                     <span><i class="far fa-calendar-alt text-primary"></i>{{ event.start_date|date:"d/m/Y" }} → {{ event.end_date|date:"d/m/Y" }}</span>
                     <span><i class="fas fa-map-marker-alt text-danger"></i>{{ event.venue|truncatechars:35 }}</span>
-                    <span><i class="fas fa-users text-info"></i>Tối đa {{ event.maximum_attende }} người</span>
+                    <span>
+                        <i class="fas fa-users text-info"></i>Đã đăng ký: <strong>{{ event.registered_count }}/{{ event.maximum_attende }}</strong>
+                        {% if event.is_full %}<span class="badge badge-danger ml-1">Hết chỗ</span>{% else %}<span class="badge badge-light ml-1">Còn {{ event.remaining_seats }} chỗ</span>{% endif %}
+                    </span>
+                    {% if event.feedback_count > 0 %}
+                    <span><i class="fas fa-star text-warning"></i><strong>{{ event.average_rating }}/5</strong> ({{ event.feedback_count }} đánh giá)</span>
+                    {% endif %}
                 </div>
                 <div class="card-actions">
+                    {% if event.id in joined_event_ids %}
+                    <a href="{% url 'join-event' event.id %}" class="btn btn-outline-success btn-sm font-weight-bold" title="Bạn đã đăng ký - Xem vé QR">
+                        <i class="fas fa-check-circle mr-1"></i>Đã đăng ký
+                    </a>
+                    {% elif event.is_full %}
+                    <button class="btn btn-secondary btn-sm" disabled title="Sự kiện đã đủ số lượng">
+                        <i class="fas fa-ban mr-1"></i>Hết chỗ
+                    </button>
+                    {% elif event.is_expired %}
+                    <button class="btn btn-secondary btn-sm" disabled title="Sự kiện đã kết thúc hoặc đóng đăng ký">
+                        <i class="fas fa-lock mr-1"></i>Đã đóng
+                    </button>
+                    {% else %}
                     <a href="{% url 'join-event' event.id %}" class="btn btn-success btn-sm" title="Đăng ký & Lấy Vé QR">
                         <i class="fa fa-ticket-alt mr-1"></i>Đăng ký
                     </a>
+                    {% endif %}
+
                     <a href="{% url 'event-detail' event.pk %}" class="btn btn-info btn-sm" title="Xem chi tiết">
                         <i class="fa fa-eye mr-1"></i>Chi tiết
+                    </a>
+                    <a href="{% url 'toggle-event-wishlist' event.pk %}" class="btn {% if event.id in wished_event_ids %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm" title="Yêu thích">
+                        <i class="{% if event.id in wished_event_ids %}fas{% else %}far{% endif %} fa-heart"></i>
                     </a>
                     {% if user.is_staff or user.is_superuser %}
                     <a href="{% url 'event-edit' event.pk %}" class="btn btn-warning btn-sm text-white" title="Chỉnh sửa">
@@ -185,6 +212,29 @@
             </div>
         </div>
     </div>
+
+    {% if is_paginated %}
+    <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center px-4">
+        <div style="font-size:13px; color:#64748b;">
+            Trang <strong>{{ page_obj.number }}</strong> / {{ paginator.num_pages }}
+        </div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">« Trước</a></li>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau »</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 {% endblock content %}
 
