@@ -23,11 +23,12 @@ Giáo viên hướng dẫn: TS. Đoàn Duy Bình
 
 | Thành phần | Công nghệ |
 |---|---|
-| Backend | Python 3.12 + Django 2.2 |
-| Frontend | HTML, CSS, JavaScript, Bootstrap 4, AdminLTE 3 |
+| Backend | Python 3.12 + Django 6.0.3 |
+| Frontend | HTML, CSS, JavaScript, Bootstrap 4, AdminLTE 3, Chart.js, Leaflet Map |
 | Database | MySQL 8.x |
 | Quản lý CSDL | MySQL Workbench |
-| Mã QR | Thư viện QR tích hợp Django |
+| Mã QR | Sinh mã QR cục bộ (Offline Python/Pillow) + Quét QR Camera (`html5-qrcode`) |
+| Xuất báo cáo | OpenPyXL (Excel `.xlsx`), iCalendar (`.ics`), Print/PDF |
 | IDE | Visual Studio Code |
 
 ---
@@ -127,18 +128,21 @@ DATN/
 
 ## Các Chức Năng Chính
 
-### Admin
-- Quản lý danh mục và sự kiện (tạo / sửa / xóa)
-- Xem danh sách người đăng ký theo từng sự kiện
-- Điểm danh người tham dự bằng mã QR
-- Cấp điểm thưởng cho người dùng
-- Thống kê đã điểm danh / vắng mặt
+### Admin / Ban tổ chức
+- Quản lý danh mục và sự kiện (tạo / sửa / xóa đầy đủ thông tin, banner và lịch trình diễn giả)
+- Xem danh sách người đăng ký theo từng sự kiện và xuất báo cáo ra file **Excel (.xlsx)**
+- Điểm danh người tham dự bằng mã QR thời gian thực (AJAX không cần tải lại trang, có âm báo)
+- Tự động cộng/thu hồi điểm thưởng rèn luyện khi điểm danh hoặc cấp điểm thủ công
+- Biểu đồ thống kê trực quan (Chart.js) theo danh mục và tỷ lệ tham dự trên Dashboard
 
-### Người dùng
-- Xem danh sách và chi tiết sự kiện
-- Đăng ký tham gia sự kiện
-- Xem vé điện tử QR của mình
-- Cập nhật hồ sơ cá nhân (avatar, số điện thoại, địa chỉ)
+### Người dùng / Sinh viên
+- Xem danh sách, tìm kiếm, lọc sự kiện, xem lịch trình diễn giả và bản đồ vị trí tương tác
+- Đăng ký tham gia sự kiện 1 chạm (kiểm soát số lượng chỗ ngồi tối đa & thời hạn) và tự hủy vé khi bận
+- Nhận **Vé điện tử QR** cá nhân (hoạt động 100% offline) và thêm lịch vào **Google Calendar / iCalendar (.ics)**
+- Nhận và tải **Giấy chứng nhận tham gia sự kiện (Certificate of Attendance)** chuẩn A4 sau khi điểm danh
+- Đánh giá sao (1-5 sao) và gửi nhận xét phản hồi sau sự kiện
+- Hệ thống thông báo In-app và Email tự động, đặt lại mật khẩu bảo mật bằng **mã xác thực OTP 6 số qua Email**
+- Cập nhật hồ sơ cá nhân (avatar, số điện thoại, địa chỉ) và danh sách sự kiện yêu thích (Wishlist)
 
 ---
 

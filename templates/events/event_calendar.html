@@ -1,0 +1,385 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Lịch & Bản đồ Sự kiện | Quản lý Sự kiện{% endblock title %}
+{% block breadcrumb_title %}Lịch & Bản đồ Sự kiện{% endblock breadcrumb_title %}
+{% block breadcrumb %}Lịch & Bản đồ Sự kiện{% endblock breadcrumb %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<style>
+    .cal-hero-card {
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .cal-header-banner {
+        background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+        padding: 20px 24px;
+        color: #fff;
+    }
+    .filter-pill {
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        color: #334155;
+        border-radius: 30px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .filter-pill:hover, .filter-pill.active {
+        background: #4f46e5;
+        color: #ffffff;
+        border-color: #4f46e5;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    #eventFullCalendar {
+        min-height: 620px;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        color: #1e293b;
+    }
+    .fc .fc-button-primary {
+        background-color: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        text-transform: capitalize;
+    }
+    .fc .fc-button-primary:hover {
+        background-color: #3730a3 !important;
+    }
+    .fc-daygrid-event {
+        border-radius: 6px !important;
+        padding: 2px 6px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        cursor: pointer;
+    }
+    #allEventsLeafletMap {
+        height: 460px;
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #cbd5e1;
+        z-index: 1;
+    }
+    .map-sidebar-list {
+        max-height: 460px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .map-event-item {
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .map-event-item:hover {
+        border-color: #4f46e5;
+        background: #eef2ff;
+        transform: translateX(3px);
+    }
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+<div class="cal-hero-card">
+    <div class="cal-header-banner d-flex justify-content-between align-items-center flex-wrap" style="gap: 12px;">
+        <div class="d-flex align-items-center">
+            <div style="width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;margin-right:14px;font-size:22px;">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div>
+                <h5 style="margin:0;font-weight:800;font-size:19px;">Lịch Trình & Bản Đồ Sự Kiện Tương Tác</h5>
+                <div style="font-size:13px;opacity:0.9;">
+                    Tổng cộng <strong>{{ total_events }}</strong> sự kiện • <strong>{{ open_events_count }}</strong> đang mở đăng ký • Bạn đã đăng ký <strong>{{ joined_events_count }}</strong> sự kiện
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+            <a href="{% url 'event-list' %}" class="btn btn-light btn-sm font-weight-bold" style="border-radius:10px;">
+                <i class="fas fa-th-large mr-1"></i>Xem dạng Thẻ / Bảng
+            </a>
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'event-create' %}" class="btn btn-warning btn-sm font-weight-bold text-dark" style="border-radius:10px;">
+                <i class="fas fa-plus-circle mr-1"></i>Tạo sự kiện mới
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="p-4">
+        <!-- Filter Bar -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4" style="gap: 12px;">
+            <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                <span class="text-muted font-weight-bold mr-1" style="font-size:12.5px;"><i class="fas fa-filter mr-1"></i>Hiển thị:</span>
+                <button type="button" class="filter-pill active" data-filter="all">Tất cả ({{ total_events }})</button>
+                <button type="button" class="filter-pill" data-filter="open">Đang mở đăng ký ({{ open_events_count }})</button>
+                <button type="button" class="filter-pill" data-filter="joined">Đã đăng ký ({{ joined_events_count }})</button>
+                <button type="button" class="filter-pill" data-filter="wished">Yêu thích ❤️</button>
+            </div>
+            <div class="d-flex align-items-center" style="gap: 8px;">
+                <select id="categoryFilterSelect" class="form-control form-control-sm" style="min-width: 220px; border-radius: 20px;">
+                    <option value="">-- Tất cả danh mục sự kiện --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- FullCalendar -->
+        <div id="eventFullCalendar"></div>
+    </div>
+</div>
+
+<!-- Interactive OpenStreetMap Section -->
+<div class="cal-hero-card p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <div>
+            <h5 style="font-weight:800; color:#1e293b; margin:0;">
+                <i class="fas fa-map-marked-alt text-danger mr-2"></i>Bản Đồ Phân Bố Sự Kiện (OpenStreetMap - Không cần API Key)
+            </h5>
+            <p class="text-muted mb-0" style="font-size:13px;">Nhấp vào sự kiện bên phải hoặc ghim trên bản đồ để xem vị trí tổ chức và chỉ đường</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <div id="allEventsLeafletMap"></div>
+        </div>
+        <div class="col-lg-4">
+            <div class="map-sidebar-list" id="mapEventSidebarList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Quick Preview Modal -->
+<div class="modal fade" id="eventQuickModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
+            <div id="modalBannerWrap" style="height:200px; background:#0f172a; position:relative; overflow:hidden;">
+                <img id="modalEventImg" src="" alt="" style="width:100%; height:100%; object-fit:cover; opacity:0.85; display:none;">
+                <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.1), rgba(15,23,42,0.92)); display:flex; flex-direction:column; justify-content:flex-end; padding:20px;">
+                    <div>
+                        <span id="modalEventCat" class="badge badge-primary px-3 py-1 mb-2" style="border-radius:20px;"></span>
+                        <span id="modalEventPoints" class="badge badge-warning px-3 py-1 mb-2 ml-1" style="border-radius:20px;"></span>
+                    </div>
+                    <h4 id="modalEventTitle" style="color:#fff; font-weight:800; margin:0; font-size:20px;"></h4>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="position:absolute; top:14px; right:18px; opacity:0.9; font-size:28px;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <div class="text-muted" style="font-size:12px; font-weight:700;">THỜI GIAN TỔ CHỨC</div>
+                        <div style="font-weight:700; color:#1e293b;" id="modalEventDate"></div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="text-muted" style="font-size:12px; font-weight:700;">SỐ CHỖ THAM DỰ</div>
+                        <div style="font-weight:700; color:#1e293b;" id="modalEventSeats"></div>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <div class="text-muted" style="font-size:12px; font-weight:700;">ĐỊA ĐIỂM</div>
+                        <div style="font-weight:700; color:#1e293b;" id="modalEventVenue"></div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap pt-3 border-top" style="gap:8px;">
+                    <div>
+                        <a id="modalMapsBtn" href="#" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm font-weight-bold">
+                            <i class="fas fa-directions mr-1"></i>Chỉ đường Google Maps
+                        </a>
+                        <a id="modalIcsBtn" href="#" class="btn btn-outline-secondary btn-sm font-weight-bold ml-1">
+                            <i class="fas fa-calendar-plus mr-1"></i>Tải .ICS
+                        </a>
+                    </div>
+                    <div>
+                        <a id="modalDetailBtn" href="#" class="btn btn-outline-primary font-weight-bold">
+                            <i class="fas fa-info-circle mr-1"></i>Xem chi tiết
+                        </a>
+                        <a id="modalJoinBtn" href="#" class="btn btn-success font-weight-bold ml-1">
+                            <i class="fas fa-qrcode mr-1"></i>Đăng ký & Nhận Vé QR
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extrascript %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var allEvents = {{ events_json|safe }};
+    var currentMode = 'all';
+    var currentCategory = '';
+
+    function filterEvents() {
+        return allEvents.filter(function(ev) {
+            if (currentCategory && String(ev.category_id) !== String(currentCategory)) return false;
+            if (currentMode === 'open') return ev.can_register;
+            if (currentMode === 'joined') return ev.is_joined;
+            if (currentMode === 'wished') return ev.is_wished;
+            return true;
+        });
+    }
+
+    function openEventModal(ev) {
+        var imgEl = document.getElementById('modalEventImg');
+        if (ev.image_url) {
+            imgEl.src = ev.image_url;
+            imgEl.style.display = 'block';
+        } else {
+            imgEl.style.display = 'none';
+        }
+        document.getElementById('modalEventCat').textContent = ev.category_name;
+        document.getElementById('modalEventPoints').textContent = '+' + ev.points + ' Xu thưởng';
+        document.getElementById('modalEventTitle').textContent = ev.title;
+        document.getElementById('modalEventDate').textContent = ev.start_display + ' → ' + ev.end_display;
+        document.getElementById('modalEventSeats').textContent = ev.registered_count + '/' + ev.maximum_attende + ' người (Còn ' + ev.remaining_seats + ' chỗ)';
+        document.getElementById('modalEventVenue').textContent = ev.venue;
+        document.getElementById('modalMapsBtn').href = ev.maps_url;
+        document.getElementById('modalIcsBtn').href = ev.ics_url;
+        document.getElementById('modalDetailBtn').href = ev.detail_url;
+
+        var joinBtn = document.getElementById('modalJoinBtn');
+        joinBtn.href = ev.join_url;
+        if (ev.is_joined) {
+            joinBtn.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Xem Vé QR Đã Đăng Ký';
+            joinBtn.className = 'btn btn-success font-weight-bold ml-1';
+        } else if (ev.can_register) {
+            joinBtn.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i>Đăng ký & Nhận Vé QR';
+            joinBtn.className = 'btn btn-primary font-weight-bold ml-1';
+        } else {
+            joinBtn.innerHTML = '<i class="fas fa-lock mr-1"></i>Xem chi tiết';
+            joinBtn.href = ev.detail_url;
+            joinBtn.className = 'btn btn-secondary font-weight-bold ml-1';
+        }
+        $('#eventQuickModal').modal('show');
+    }
+
+    // 1. Khởi tạo FullCalendar
+    var calendarEl = document.getElementById('eventFullCalendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'vi',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        buttonText: {
+            today: 'Hôm nay',
+            month: 'Tháng',
+            week: 'Tuần',
+            list: 'Danh sách'
+        },
+        events: filterEvents(),
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            var found = allEvents.find(function(x) { return String(x.id) === String(info.event.id); });
+            if (found) openEventModal(found);
+        }
+    });
+    calendar.render();
+
+    // 2. Khởi tạo Bản đồ OpenStreetMap (Leaflet + CartoDB Voyager CDN không bị chặn 403)
+    var map = L.map('allEventsLeafletMap').setView([16.060, 108.210], 12);
+    var voyagerLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+    var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: '&copy; Esri'
+    });
+    var osmStdLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    });
+    L.control.layers({
+        "🗺️ Bản đồ Đường phố (Sắc nét)": voyagerLayer,
+        "🛰️ Bản đồ Vệ tinh": satelliteLayer,
+        "🌍 OpenStreetMap Chuẩn": osmStdLayer
+    }).addTo(map);
+
+    var markersLayer = L.layerGroup().addTo(map);
+    var markerMap = {};
+
+    function renderMapAndSidebar() {
+        markersLayer.clearLayers();
+        markerMap = {};
+        var listEl = document.getElementById('mapEventSidebarList');
+        listEl.innerHTML = '';
+        var filtered = filterEvents();
+
+        filtered.forEach(function(ev) {
+            var marker = L.marker([ev.lat, ev.lng]).addTo(markersLayer);
+            var popupHtml =
+                '<div style="min-width:210px;">' +
+                '<div style="font-weight:800;color:#1e293b;margin-bottom:4px;">' + ev.title + '</div>' +
+                '<div style="font-size:12px;color:#475569;margin-bottom:4px;"><i class="fas fa-map-pin text-danger mr-1"></i>' + ev.venue + '</div>' +
+                '<div style="font-size:12px;color:#059669;font-weight:700;margin-bottom:8px;">📅 ' + ev.start_display + ' • Còn ' + ev.remaining_seats + ' chỗ</div>' +
+                '<a href="' + ev.detail_url + '" class="btn btn-primary btn-xs text-white" style="padding:3px 10px;font-size:11.5px;">Xem chi tiết</a> ' +
+                '<a href="' + ev.maps_url + '" target="_blank" class="btn btn-outline-danger btn-xs" style="padding:3px 10px;font-size:11.5px;">Chỉ đường</a>' +
+                '</div>';
+            marker.bindPopup(popupHtml);
+            markerMap[ev.id] = marker;
+
+            var item = document.createElement('div');
+            item.className = 'map-event-item';
+            item.innerHTML =
+                '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                '<span class="badge text-white" style="background:' + ev.color + ';">' + ev.category_code + '</span>' +
+                '<span style="font-size:11.5px;color:#64748b;font-weight:600;">' + ev.start_display + '</span>' +
+                '</div>' +
+                '<div style="font-weight:700;font-size:13.5px;color:#1e293b;line-height:1.35;">' + ev.title + '</div>' +
+                '<div style="font-size:12px;color:#64748b;margin-top:4px;"><i class="fas fa-map-marker-alt text-danger mr-1"></i>' + ev.venue + '</div>';
+            item.addEventListener('click', function() {
+                map.flyTo([ev.lat, ev.lng], 16, { duration: 0.8 });
+                marker.openPopup();
+            });
+            listEl.appendChild(item);
+        });
+    }
+
+    renderMapAndSidebar();
+
+    function refreshAll() {
+        var filtered = filterEvents();
+        calendar.removeAllEvents();
+        calendar.addEventSource(filtered);
+        renderMapAndSidebar();
+    }
+
+    document.querySelectorAll('.filter-pill').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-pill').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentMode = btn.getAttribute('data-filter');
+            refreshAll();
+        });
+    });
+
+    document.getElementById('categoryFilterSelect').addEventListener('change', function(e) {
+        currentCategory = e.target.value;
+        refreshAll();
+    });
+});
+</script>
+{% endblock extrascript %}
+

@@ -3,26 +3,6 @@
 {% block title %}Sự kiện yêu thích | Quản lý Sự kiện{% endblock title %}
 {% block breadcrumb %}Sự kiện yêu thích{% endblock breadcrumb %}
 
-{% block extrahead %}
-<style>
-.premium-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-    border: none;
-    overflow: hidden;
-}
-.action-btn {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s;
-}
-.action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="premium-card">
     <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);border:none;padding:22px 28px;">
@@ -65,12 +45,13 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            {% if user.is_staff or user.is_superuser %}
-                            <a href="{% url 'remove-event-user-wish' wish.pk %}" class="action-btn" style="background:#fee2e2;color:#dc2626;" title="Xóa yêu thích">
+                            <a href="{% url 'event-detail' wish.event.pk %}" class="action-btn mr-1" style="background:#e0e7ff;color:#4f46e5;" title="Xem sự kiện">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if user.is_staff or user.is_superuser or wish.user == user %}
+                            <a href="{% url 'remove-event-user-wish' wish.pk %}" class="action-btn" style="background:#fee2e2;color:#dc2626;" title="Xóa khỏi yêu thích">
                                 <i class="fas fa-heart-broken"></i>
                             </a>
-                            {% else %}
-                            <span class="badge badge-light">Đã lưu</span>
                             {% endif %}
                         </td>
                     </tr>
